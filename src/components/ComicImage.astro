@@ -1,0 +1,48 @@
+---
+interface Props { alt: string; panels: string[]; image?: string; compact?: boolean; }
+const { alt, panels, image = '', compact = false } = Astro.props;
+const isPlaceholder = image.startsWith('placeholder://') || !image;
+---
+
+<figure class:list={['comic-figure', { compact }]}>
+  {isPlaceholder ? (
+    <div class="comic-strip" role="img" aria-label={alt}>
+      {panels.map((line, index) => (
+        <div class={`panel panel-${index + 1}`}>
+          <p class="panel-number">{String(index + 1).padStart(2, '0')}</p>
+          <p class="bubble">{line}</p>
+          <div class:list={['character', { machine: index % 2 === 0 }]} aria-hidden="true">
+            <span class="face">{index % 3 === 0 ? '•ᴗ•' : index % 3 === 1 ? '•_•' : '•‿•'}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : <img src={image} alt={alt} loading={compact ? 'lazy' : 'eager'} decoding="async" />}
+  <figcaption>Artist’s reconstruction. Facts tiny; absurdity enlarged for legibility.</figcaption>
+</figure>
+
+<style>
+  .comic-figure { margin: clamp(2rem, 5vw, 3.5rem) 0 0; }
+  .comic-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); min-height: 22rem; overflow: hidden; border: 2px solid var(--ink); background: #fbf8ef; }
+  .panel { position: relative; display: grid; min-width: 0; place-items: end center; padding: 1.5rem; overflow: hidden; }
+  .panel + .panel { border-left: 2px solid var(--ink); }
+  .panel::after { position: absolute; z-index: 0; right: -2rem; bottom: -3rem; width: 10rem; height: 9rem; border-radius: 50%; background: var(--pickle-pale); content: ''; opacity: 0.7; }
+  .panel:nth-child(even)::after { right: auto; left: -2rem; background: #ead9c9; }
+  .panel-number { position: absolute; top: 0.7rem; left: 0.85rem; margin: 0; color: var(--muted); font-size: 0.58rem; font-weight: 850; letter-spacing: 0.12em; }
+  .bubble { position: absolute; z-index: 3; top: 3rem; left: 50%; width: min(88%, 13.5rem); margin: 0; padding: 0.75rem 0.85rem; translate: -50% 0; border: 1.5px solid var(--ink); border-radius: 50%; background: #fffef9; font-family: var(--serif); font-size: clamp(0.85rem, 1.35vw, 1rem); font-weight: 700; line-height: 1.2; text-align: center; }
+  .bubble::after { position: absolute; bottom: -0.48rem; left: 50%; width: 0.75rem; height: 0.75rem; rotate: 45deg; border-right: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); background: #fffef9; content: ''; }
+  .character { position: relative; z-index: 1; display: grid; width: 7rem; height: 9rem; margin-bottom: -0.75rem; place-items: center; border: 2px solid var(--ink); border-radius: 52% 48% 46% 54% / 28% 33% 67% 72%; background: #d89367; box-shadow: inset 0 0 0 0.55rem #f2c6a1; }
+  .character.machine { width: 8rem; height: 6.25rem; margin-bottom: 2rem; border-radius: 0.5rem; background: var(--pickle); box-shadow: 0.65rem 0.65rem 0 var(--paper-deep); }
+  .character.machine::after { position: absolute; bottom: -2rem; left: 50%; width: 4.5rem; height: 2rem; translate: -50% 0; border-bottom: 2px solid var(--ink); border-inline: 2px solid var(--ink); content: ''; }
+  .face { display: grid; width: 70%; height: 44%; place-items: center; border: 2px solid var(--ink); background: #f8f3e6; font-family: ui-monospace, monospace; font-size: 1.1rem; font-weight: 900; }
+  img { width: 100%; border: 2px solid var(--ink); background: #fff; }
+  figcaption { margin-top: 0.65rem; color: var(--muted); font-family: var(--serif); font-size: 0.82rem; font-style: italic; text-align: center; }
+  .compact .comic-strip { min-height: 14rem; }
+  .compact .bubble { top: 2.4rem; }
+  .compact .character { scale: 0.75; transform-origin: bottom; }
+  @media (max-width: 46rem) {
+    .comic-strip { grid-template-columns: 1fr; min-height: 0; }
+    .panel { min-height: 21rem; }
+    .panel + .panel { border-top: 2px solid var(--ink); border-left: 0; }
+  }
+</style>

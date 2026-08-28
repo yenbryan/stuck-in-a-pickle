@@ -1,0 +1,18 @@
+---
+import type { Story } from '../types/story';
+interface Props { story: Story; }
+const { story } = Astro.props;
+---
+
+<aside class="source" aria-label="Story source">
+  <p class="eyebrow">Source</p>
+  {story.fictional ? <p><strong>Demonstration story:</strong> This event is fictional. The source link points to an example domain for preview purposes.</p> : <p>Based on reporting from <a href={story.sourceUrl} rel="external noreferrer">{story.sourceName}</a>.</p>}
+  <a class="source-link" href={story.sourceUrl} rel="external noreferrer">{story.sourceName} <span aria-hidden="true">↗</span></a>
+</aside>
+
+<style>
+  .source { max-width: var(--reading); margin: 3rem auto; padding: 1.4rem 0; border-block: 1px solid var(--rule); }
+  .source p { margin: 0; }
+  .source p:not(.eyebrow) { font-family: var(--serif); font-size: 1.08rem; }
+  .source-link { display: inline-block; margin-top: 0.6rem; font-size: 0.76rem; font-weight: 850; text-transform: uppercase; }
+</style>

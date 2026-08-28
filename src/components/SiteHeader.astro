@@ -1,0 +1,13 @@
+---
+import EditionDate from './EditionDate.astro';
+import Masthead from './Masthead.astro';
+import Navigation from './Navigation.astro';
+---
+
+<header class="site-header page-shell">
+  <Masthead />
+  <EditionDate date={new Date('2026-08-28T12:00:00Z')} />
+  <Navigation />
+</header>
+
+<style>.site-header { padding-top: 1.1rem; }</style>

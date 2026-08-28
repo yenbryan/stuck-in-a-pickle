@@ -1,0 +1,13 @@
+---
+import { categorySlug } from '../utils/stories';
+interface Props { category: string; linked?: boolean; }
+const { category, linked = true } = Astro.props;
+---
+
+{linked ? <a class="category-tag" href={`/category/${categorySlug(category)}`}>{category}</a> : <span class="category-tag">{category}</span>}
+
+<style>
+  .category-tag { display: inline-block; color: var(--pickle-dark); font-size: 0.68rem; font-weight: 850; letter-spacing: 0.14em; text-decoration: none; text-transform: uppercase; }
+  .category-tag::before { display: inline-block; width: 0.52rem; height: 0.52rem; margin-right: 0.45rem; rotate: -8deg; border: 1px solid var(--pickle-dark); border-radius: 45% 55% 50% 46%; background: var(--pickle-pale); content: ''; }
+  .category-tag:hover { text-decoration: underline 2px; text-underline-offset: 0.25rem; }
+</style>

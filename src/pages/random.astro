@@ -1,0 +1,27 @@
+---
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getAllStories } from '../utils/stories';
+const stories = await getAllStories();
+const paths = stories.map((story) => `/comic/${story.slug}`);
+---
+
+<BaseLayout title="Random comic — The Pickle" description="Let the jar decide which comic you read next." canonicalPath="/random" noindex>
+  <SiteHeader />
+  <main id="main-content" class="page-shell random-page">
+    <div class="jar" aria-hidden="true"><span>?</span></div><p class="eyebrow">Reaching into the jar</p><h1>Choosing a random pickle…</h1><p>If nothing happens, your browser may be sensibly suspicious of whimsy.</p>
+    <noscript><p>JavaScript is off, so the universe has selected <a href={`/comic/${stories[0].slug}`}>{stories[0].title}</a>.</p></noscript>
+  </main>
+  <SiteFooter />
+  <script is:inline define:vars={{ paths }}>const destination = paths[Math.floor(Math.random() * paths.length)]; window.location.replace(destination);</script>
+</BaseLayout>
+
+<style>
+  .random-page { display: grid; min-height: 55vh; padding-block: 5rem; place-items: center; align-content: center; text-align: center; }
+  .jar { position: relative; display: grid; width: 7rem; height: 8rem; margin-bottom: 1.5rem; place-items: center; rotate: -4deg; border: 2px solid var(--ink); border-radius: 0.6rem 0.6rem 1.7rem 1.7rem; background: var(--pickle-pale); box-shadow: inset 0 0 0 0.45rem var(--paper); }
+  .jar::before { position: absolute; top: -0.7rem; width: 7.8rem; height: 1rem; border: 2px solid var(--ink); background: var(--tomato); content: ''; }
+  .jar span { color: var(--pickle-dark); font-family: var(--serif); font-size: 4rem; font-weight: 900; }
+  h1 { margin: 0; font-family: var(--serif); font-size: clamp(2.8rem, 7vw, 6rem); letter-spacing: -0.06em; line-height: 0.95; }
+  .random-page > p:last-of-type { color: var(--muted); font-family: var(--serif); }
+</style>

@@ -1,0 +1,15 @@
+---
+import type { Story } from '../types/story';
+import { formatStoryDate } from '../utils/stories';
+interface Props { story: Story; centered?: boolean; }
+const { story, centered = false } = Astro.props;
+---
+
+<div class:list={['story-meta', { centered }]}>
+  <span>By {story.author}</span><span aria-hidden="true">•</span><time datetime={story.publishedAt.toISOString()}>{formatStoryDate(story.publishedAt)}</time><span aria-hidden="true">•</span><span>1 min read</span>
+</div>
+
+<style>
+  .story-meta { display: flex; flex-wrap: wrap; gap: 0.45rem; color: var(--muted); font-size: 0.66rem; font-weight: 750; letter-spacing: 0.075em; text-transform: uppercase; }
+  .centered { justify-content: center; }
+</style>

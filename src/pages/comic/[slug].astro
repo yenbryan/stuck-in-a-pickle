@@ -1,0 +1,74 @@
+---
+import AbsurdityBox from '../../components/AbsurdityBox.astro';
+import ComicImage from '../../components/ComicImage.astro';
+import NewsSummary from '../../components/NewsSummary.astro';
+import RelatedStories from '../../components/RelatedStories.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SourceLink from '../../components/SourceLink.astro';
+import StoryIntro from '../../components/StoryIntro.astro';
+import StoryNavigation from '../../components/StoryNavigation.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import type { Story } from '../../types/story';
+import { getAdjacentStories, getAllStories, getRelatedStories } from '../../utils/stories';
+
+export async function getStaticPaths() {
+  const stories = await getAllStories();
+  return stories.map((story) => ({ params: { slug: story.slug }, props: { story } }));
+}
+
+interface Props { story: Story; }
+const { story } = Astro.props;
+const allStories = await getAllStories();
+const related = getRelatedStories(story, allStories);
+const { previous, next } = getAdjacentStories(story, allStories);
+const title = `${story.title} — The Pickle`;
+const canonicalPath = `/comic/${story.slug}`;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: story.title,
+  description: story.summary,
+  datePublished: story.publishedAt.toISOString(),
+  dateModified: (story.updatedAt ?? story.publishedAt).toISOString(),
+  author: { '@type': 'Person', name: story.author },
+  publisher: { '@type': 'Organization', name: 'The Pickle', url: 'https://thepickle.example' },
+  mainEntityOfPage: `https://thepickle.example${canonicalPath}`,
+  articleSection: story.category,
+  keywords: story.tags.join(', '),
+  isAccessibleForFree: true,
+};
+---
+
+<BaseLayout title={title} description={story.summary} canonicalPath={canonicalPath} ogType="article" publishedAt={story.publishedAt}>
+  <SiteHeader />
+  <main id="main-content" class="page-shell story-page">
+    <article>
+      <header class="story-top"><p class="premise"><span>In five seconds:</span> something happened, and it was like this.</p><StoryIntro story={story} /></header>
+      <div class="explainer-grid"><NewsSummary summary={story.summary} /><AbsurdityBox absurdity={story.absurdity} /></div>
+      <section class="comic-section" aria-labelledby="comic-heading"><h2 id="comic-heading"><span>And now,</span> the comic</h2><ComicImage alt={story.comicImageAlt} panels={story.comicPanels} image={story.comicImage} /></section>
+      <SourceLink story={story} />
+      <StoryNavigation previous={previous} next={next} />
+      <RelatedStories stories={related} />
+    </article>
+  </main>
+  <SiteFooter />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+</BaseLayout>
+
+<style>
+  .story-page { padding-block: clamp(2.5rem, 7vw, 5.5rem); }
+  .story-top { position: relative; }
+  .premise { width: fit-content; margin: 0 auto 2.2rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--rule); color: var(--muted); font-family: var(--serif); font-size: 0.9rem; font-style: italic; }
+  .premise span { color: var(--tomato); font-family: var(--sans); font-size: 0.63rem; font-style: normal; font-weight: 850; letter-spacing: 0.1em; text-transform: uppercase; }
+  .explainer-grid { display: grid; grid-template-columns: 1fr 1fr; max-width: 56rem; margin: clamp(2.75rem, 6vw, 4.5rem) auto 0; border-block: 1px solid var(--ink); }
+  .explainer-grid > :global(section + section) { border-left: 1px solid var(--ink); }
+  .comic-section { margin-top: clamp(3.5rem, 8vw, 6rem); }
+  .comic-section h2 { display: flex; align-items: baseline; gap: 0.7rem; width: fit-content; margin: 0 auto; font-family: var(--serif); font-size: clamp(2.5rem, 6vw, 5rem); letter-spacing: -0.05em; line-height: 1; }
+  .comic-section h2 span { color: var(--muted); font-size: 0.8rem; font-style: italic; font-weight: 400; letter-spacing: 0; }
+  @media (max-width: 42rem) {
+    .premise { text-align: center; }
+    .explainer-grid { grid-template-columns: 1fr; }
+    .explainer-grid > :global(section + section) { border-top: 1px solid var(--ink); border-left: 0; }
+  }
+</style>

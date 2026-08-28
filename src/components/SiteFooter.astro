@@ -1,0 +1,18 @@
+<footer class="site-footer">
+  <div class="page-shell footer-grid">
+    <div><a class="footer-logo" href="/">The Pickle</a><p>Made by humans using an irresponsible number of computers.</p></div>
+    <nav aria-label="Footer navigation"><a href="/about">About</a><a href="/archive">Archive</a><a href="/rss.xml">RSS</a><a href="/random">Random</a></nav>
+    <p class="fine-print">© 2026 The Pickle.<br />Please recycle this internet.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer { padding-block: 2.5rem; border-top: 3px double var(--ink); }
+  .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 2rem; align-items: end; }
+  .footer-logo { font-family: var(--serif); font-size: 2rem; font-weight: 900; letter-spacing: -0.05em; text-decoration: none; }
+  p { margin: 0.25rem 0 0; color: var(--muted); font-family: var(--serif); font-size: 0.85rem; }
+  nav { display: flex; flex-wrap: wrap; gap: 0.9rem; }
+  nav a { font-size: 0.68rem; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
+  .fine-print { text-align: right; }
+  @media (max-width: 42rem) { .footer-grid { grid-template-columns: 1fr; } .fine-print { text-align: left; } }
+</style>

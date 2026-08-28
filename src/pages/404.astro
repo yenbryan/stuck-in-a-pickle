@@ -1,0 +1,19 @@
+---
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found — The Pickle" description="This pickle appears to have rolled under the refrigerator." noindex>
+  <SiteHeader />
+  <main id="main-content" class="page-shell not-found"><p class="code">404</p><h1>This pickle rolled under the refrigerator.</h1><p>We could retrieve it, but then we would have to move the refrigerator.</p><a href="/">Return to civilization →</a></main>
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .not-found { min-height: 55vh; padding-block: 5rem; text-align: center; }
+  .code { margin: 0; color: var(--tomato); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.2em; }
+  h1 { max-width: 50rem; margin: 0.6rem auto 1rem; font-family: var(--serif); font-size: clamp(3rem, 8vw, 6.5rem); letter-spacing: -0.06em; line-height: 0.9; }
+  .not-found > p:nth-of-type(2) { color: var(--muted); font-family: var(--serif); font-size: 1.1rem; }
+  a { font-size: 0.75rem; font-weight: 850; text-transform: uppercase; }
+</style>

@@ -1,0 +1,33 @@
+<aside class="newsletter" aria-labelledby="newsletter-title">
+  <div class="stamp" aria-hidden="true">NEW<br />ISSUE</div>
+  <div>
+    <p class="eyebrow">Occasional correspondence</p>
+    <h2 id="newsletter-title">Get the nonsense delivered.</h2>
+    <p>A few comics. No 47-email onboarding sequence. No growth-hacking your relationship with cucumbers.</p>
+  </div>
+  <form action="#newsletter-note" method="get">
+    <label for="newsletter-email">Your email address</label>
+    <div class="field-row"><input id="newsletter-email" name="email" type="email" autocomplete="email" placeholder="you@probably.email" required /><button type="submit">Put me on the list</button></div>
+    <small id="newsletter-note">Preview only — the form does not send anywhere yet.</small>
+  </form>
+</aside>
+
+<style>
+  .newsletter { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 5vw, 4rem); margin-block: 5rem; padding: clamp(1.5rem, 4vw, 3.2rem); border: 2px solid var(--ink); background: var(--pickle-pale); }
+  .newsletter::before { position: absolute; inset: 0.4rem; border: 1px solid rgba(32, 34, 25, 0.35); content: ''; pointer-events: none; }
+  .stamp { position: absolute; top: -1.3rem; right: 1.5rem; display: grid; width: 4.4rem; aspect-ratio: 1; place-items: center; rotate: 7deg; border: 2px solid var(--tomato); border-radius: 50%; background: var(--paper); color: var(--tomato); font-size: 0.63rem; font-weight: 900; letter-spacing: 0.08em; line-height: 1.05; text-align: center; }
+  h2 { margin: 0; font-family: var(--serif); font-size: clamp(2.25rem, 5vw, 4.2rem); letter-spacing: -0.05em; line-height: 0.95; }
+  p { max-width: 35rem; margin: 0.85rem 0 0; font-family: var(--serif); font-size: 1.05rem; }
+  form { align-self: center; }
+  label { display: block; margin-bottom: 0.45rem; font-size: 0.68rem; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
+  .field-row { display: flex; }
+  input { min-width: 0; flex: 1; border: 2px solid var(--ink); border-right: 0; border-radius: 0; padding: 0.8rem; background: #fffdf6; color: var(--ink); }
+  button { padding: 0.8rem 1rem; border: 2px solid var(--ink); border-radius: 0; background: var(--ink); color: var(--paper); cursor: pointer; font-size: 0.74rem; font-weight: 850; }
+  button:hover { background: var(--pickle-dark); }
+  small { display: block; margin-top: 0.5rem; color: var(--muted); font-size: 0.68rem; }
+  @media (max-width: 46rem) {
+    .newsletter { grid-template-columns: 1fr; }
+    .field-row { flex-direction: column; }
+    input { border-right: 2px solid var(--ink); border-bottom: 0; }
+  }
+</style>

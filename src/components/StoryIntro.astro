@@ -1,0 +1,28 @@
+---
+import type { Story } from '../types/story';
+import CategoryTag from './CategoryTag.astro';
+import StoryMetadata from './StoryMetadata.astro';
+interface Props { story: Story; level?: 'h1' | 'h2'; linked?: boolean; compact?: boolean; }
+const { story, level = 'h1', linked = false, compact = false } = Astro.props;
+const Heading = level;
+---
+
+<header class:list={['story-intro', { compact }]}>
+  <CategoryTag category={story.category} />
+  <Heading>{linked ? <a href={`/comic/${story.slug}`}>{story.title}</a> : story.title}</Heading>
+  <p class="dek">{story.summary}</p>
+  <StoryMetadata story={story} centered={!compact} />
+</header>
+
+<style>
+  .story-intro { max-width: 58rem; margin-inline: auto; text-align: center; }
+  h1, h2 { max-width: 56rem; margin: 0.55rem auto 0; font-family: var(--serif); font-size: clamp(2.5rem, 5.8vw, 5.4rem); font-weight: 900; letter-spacing: -0.055em; line-height: 0.95; text-wrap: balance; }
+  h2 { font-size: clamp(2.1rem, 4.7vw, 4.25rem); }
+  h1 a, h2 a { text-decoration: none; }
+  h1 a:hover, h2 a:hover { color: var(--pickle-dark); text-decoration: underline 0.06em; text-underline-offset: 0.1em; }
+  .dek { max-width: 46rem; margin: 1.35rem auto 1.15rem; color: #41433a; font-family: var(--serif); font-size: clamp(1.18rem, 2.35vw, 1.58rem); line-height: 1.35; text-wrap: balance; }
+  .compact { max-width: none; text-align: left; }
+  .compact h1, .compact h2 { margin-inline: 0; font-size: clamp(1.8rem, 3.3vw, 3rem); line-height: 1.02; }
+  .compact .dek { margin: 0.8rem 0 1rem; font-size: 1.08rem; }
+  @media (max-width: 42rem) { h1 { font-size: clamp(2.35rem, 11.5vw, 3.8rem); } }
+</style>

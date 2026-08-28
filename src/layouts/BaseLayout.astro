@@ -1,0 +1,57 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonicalPath?: string;
+  image?: string;
+  ogType?: 'website' | 'article';
+  publishedAt?: Date;
+  noindex?: boolean;
+}
+
+const {
+  title = 'The Pickle — The news, explained by making fun of it',
+  description = 'Current events, reduced to their essential absurdity.',
+  canonicalPath = Astro.url.pathname,
+  image,
+  ogType = 'website',
+  publishedAt,
+  noindex = false,
+} = Astro.props;
+const site = Astro.site ?? new URL('https://thepickle.example');
+const canonicalURL = new URL(canonicalPath, site);
+const imageURL = image ? new URL(image, site) : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#f4efe3" />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="alternate" type="application/rss+xml" title="The Pickle RSS" href={new URL('/rss.xml', site)} />
+    <meta property="og:site_name" content="The Pickle" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    {imageURL && <meta property="og:image" content={imageURL} />}
+    {publishedAt && <meta property="article:published_time" content={publishedAt.toISOString()} />}
+    <meta name="twitter:card" content={imageURL ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {imageURL && <meta name="twitter:image" content={imageURL} />}
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to the nonsense</a>
+    <slot />
+  </body>
+</html>
