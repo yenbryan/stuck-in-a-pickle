@@ -2,18 +2,19 @@
 title: "ATF Gets Hacked, Declares Major Incident, Opens Tipline"
 slug: "atf-cyberattack-tipline"
 publishedAt: 2026-08-27
-updatedAt: 2026-08-31
+updatedAt: 2026-09-01
 summary: "ATF declared a cyberattack on a stand-alone system a major incident and asked anyone with information to call its tipline."
-absurdity: "The agency's cyber incident plan ended with the analog equivalent of asking the internet who hacked it."
+absurdity: "The tipline's best-informed caller may still be inside the system."
 category: "Technology"
-tags: ["Cybersecurity", "Government", "ATF", "Ransomware"]
+tags: ["Cybersecurity", "Government", "ATF", "Cyberattack"]
 comicImage: "/comics/atf-cyberattack-tipline.webp"
-comicImageAlt: "Multi-panel satirical comic in which ATF announces a cyber incident, asks the public to call its tipline, the hacker calls with details, and an official struggles to explain how an isolated system was breached."
+comicImageAlt: "A four-panel comic. A federal spokesperson says a standalone ATF system was hacked and asks anyone with information to call the tipline. An agent asks a caller how close they are to the incident. A fictional hacker, still connected to the system, answers, 'Still in it.'"
+comicLayout: "standard"
 comicPanels:
-  - "We suffered a major cyber incident. Files on our investigation targets may be affected."
-  - "Call 1-888-ATF-TIPS if you know anything."
-  - "The hacker calls the tipline with detailed information about the breach."
-  - "The system was standalone and air-gapped. So how did they get in? Charisma."
+  - "A standalone ATF system was hacked."
+  - "Anyone with information, call our tipline."
+  - "How close are you to the incident?"
+  - "Still in it."
 sourceName: "ATF"
 sourceUrl: "https://www.atf.gov/news/press-releases/atf-responds-to-cybersecurity-incident"
 featured: false
@@ -22,4 +23,4 @@ author: "Marcy Brine"
 fictional: false
 ---
 
-The factual summary is based on the linked agency notice. The comic is satire.
+The factual summary is based on the linked agency notice, which described the affected system as standalone and separate from the ATF enterprise network. It did not describe the system as air-gapped. The caller, live connection and all dialogue are satirical inventions.
