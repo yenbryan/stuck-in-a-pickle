@@ -1,80 +1,135 @@
 ---
-import CategoryTag from '../components/CategoryTag.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import StoryCard from '../components/StoryCard.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { STORY_CATEGORIES } from '../types/story';
-import { categorySlug, formatMonth, formatStoryDate, getAllStories } from '../utils/stories';
+import { categorySlug, formatMonth, getAllStories } from '../utils/stories';
 
 const stories = await getAllStories();
+
 const grouped = stories.reduce<Record<string, typeof stories>>((groups, story) => {
   const key = formatMonth(story.publishedAt);
   (groups[key] ??= []).push(story);
   return groups;
 }, {});
+
+const monthId = (month: string) => month.toLowerCase().replaceAll(' ', '-');
 ---
 
-<BaseLayout title="Archive — The Pickle" description="Every comic in The Pickle, arranged for efficient procrastination." canonicalPath="/archive" image="/og.png">
+<BaseLayout
+  title="Archive — Stuck in a Pickle"
+  description="Every Stuck in a Pickle comic, arranged for efficient procrastination."
+  canonicalPath="/archive"
+  image="/og.png"
+>
   <SiteHeader />
-  <main id="main-content" class="page-shell archive-page">
-    <header class="page-intro"><p class="eyebrow">The compost heap</p><h1>Everything we have pickled so far.</h1><p>Browse by year, month, or the particular system you suspect is functioning as intended.</p></header>
-    <nav class="archive-jumps" aria-label="Archive filters">
-      <div><span>Year</span><a href="#year-2026">2026</a></div>
-      <div><span>Month</span>{Object.keys(grouped).map((month) => <a href={`#${month.toLowerCase().replace(' ', '-')}`}>{month.replace(' 2026', '')}</a>)}</div>
-      <div><span>Category</span>{STORY_CATEGORIES.map((category) => <a href={`/category/${categorySlug(category)}`}>{category}</a>)}</div>
+
+  <main id="main-content" class="shell archive">
+    <header class="archive__intro">
+      <p class="label">The complete archive</p>
+      <h1 class="headline">Every pickle, in order.</h1>
+      <p class="lede">
+        {stories.length} comics so far. Browse by date below, or by the particular system
+        you suspect is functioning as intended.
+      </p>
+    </header>
+
+    <nav class="archive__topics" aria-label="Browse by category">
+      <p class="label">By predicament</p>
+      <ul>
+        {STORY_CATEGORIES.map((category) => (
+          <li><a href={`/category/${categorySlug(category)}`}>{category}</a></li>
+        ))}
+      </ul>
     </nav>
-    <section id="year-2026" aria-labelledby="year-heading">
-      <header class="year-header"><h2 id="year-heading">2026</h2><p>{stories.length} complaints, illustrated</p></header>
-      {Object.entries(grouped).map(([month, monthStories]) => (
-        <section class="month" id={month.toLowerCase().replace(' ', '-')} aria-labelledby={`${month}-heading`}>
-          <h3 id={`${month}-heading`}>{month}</h3>
-          <div class="archive-list">
-            {monthStories.map((story, index) => (
-              <article>
-                <time datetime={story.publishedAt.toISOString()}>{formatStoryDate(story.publishedAt).replace(', 2026', '')}</time>
-                <div><CategoryTag category={story.category} /><h4><a href={`/comic/${story.slug}`}>{story.title}</a></h4><p>{story.absurdity}</p></div>
-                <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-              </article>
-            ))}
-          </div>
-        </section>
-      ))}
-    </section>
+
+    {Object.entries(grouped).map(([month, monthStories]) => (
+      <section class="archive__month" id={monthId(month)} aria-labelledby={`${monthId(month)}-heading`}>
+        <div class="section-head">
+          <h2 class="label" id={`${monthId(month)}-heading`}>{month}</h2>
+          <p class="section-head__aside">
+            {monthStories.length} {monthStories.length === 1 ? 'comic' : 'comics'}
+          </p>
+        </div>
+        <div class="archive__grid">
+          {monthStories.map((story) => <StoryCard story={story} variant="related" />)}
+        </div>
+      </section>
+    ))}
   </main>
+
   <SiteFooter />
 </BaseLayout>
 
 <style>
-  .archive-page { padding-block: clamp(3rem, 8vw, 6rem); }
-  .page-intro { max-width: 49rem; }
-  h1 { margin: 0; font-family: var(--serif); font-size: clamp(3.2rem, 8vw, 7rem); letter-spacing: -0.065em; line-height: 0.88; }
-  .page-intro > p:last-child { max-width: 40rem; color: var(--muted); font-family: var(--serif); font-size: 1.2rem; }
-  .archive-jumps { display: grid; grid-template-columns: 0.65fr 1fr 2fr; margin-block: 3rem 5rem; border-block: 3px double var(--ink); }
-  .archive-jumps div { display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem; padding: 1rem; }
-  .archive-jumps div + div { border-left: 1px solid var(--rule); }
-  .archive-jumps span { flex-basis: 100%; color: var(--muted); font-size: 0.62rem; font-weight: 850; letter-spacing: 0.1em; text-transform: uppercase; }
-  .archive-jumps a { font-family: var(--serif); font-size: 0.9rem; font-weight: 700; }
-  .year-header { display: flex; align-items: end; justify-content: space-between; border-bottom: 2px solid var(--ink); }
-  .year-header h2 { margin: 0; font-family: var(--serif); font-size: clamp(4rem, 9vw, 8rem); letter-spacing: -0.07em; line-height: 0.8; }
-  .year-header p { margin: 0 0 0.45rem; color: var(--muted); font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
-  .month { display: grid; grid-template-columns: 11rem 1fr; padding-block: 2rem; border-bottom: 1px solid var(--rule); scroll-margin-top: 1rem; }
-  .month h3 { margin: 0; font-family: var(--serif); font-size: 1.55rem; }
-  .archive-list article { display: grid; grid-template-columns: 7rem 1fr auto; gap: 1rem; padding: 1.25rem 0; }
-  .archive-list article + article { border-top: 1px solid var(--rule); }
-  .archive-list time { color: var(--muted); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
-  .archive-list h4 { margin: 0.35rem 0; font-family: var(--serif); font-size: clamp(1.45rem, 2.8vw, 2.15rem); letter-spacing: -0.025em; line-height: 1.05; }
-  .archive-list h4 a { text-decoration: none; }
-  .archive-list p { margin: 0; color: var(--muted); font-family: var(--serif); font-size: 0.95rem; }
-  .archive-list article > span { color: var(--rule); font-family: var(--serif); font-size: 1.4rem; font-weight: 900; }
-  @media (max-width: 48rem) {
-    .archive-jumps { grid-template-columns: 1fr; }
-    .archive-jumps div + div { border-top: 1px solid var(--rule); border-left: 0; }
-    .month { grid-template-columns: 1fr; gap: 1rem; }
+  .archive {
+    padding-block: clamp(2rem, 4vw, 3rem) 0;
   }
-  @media (max-width: 36rem) {
-    .archive-list article { grid-template-columns: 1fr auto; }
-    .archive-list time { grid-column: 1; }
-    .archive-list article > div { grid-column: 1; }
-    .archive-list article > span { grid-column: 2; grid-row: 1 / 3; }
+
+  .archive__intro {
+    max-width: 42rem;
+  }
+
+  .archive__intro .headline {
+    margin: 0.5rem 0 0.9rem;
+  }
+
+  .archive__topics {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem clamp(2rem, 5vw, 3.5rem);
+    margin-top: var(--s-12);
+    padding-block: var(--s-4);
+    border-block: 1px solid var(--hair);
+  }
+
+  .archive__topics ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .archive__topics a {
+    display: inline-block;
+    padding-block: 0.25rem;
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 24, "wght" 600, "SOFT" 22, "WONK" 0;
+    font-size: 1.1rem;
+  }
+
+  .archive__month {
+    padding-top: var(--s-18);
+    scroll-margin-top: 1rem;
+  }
+
+  .archive__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.75rem, 3vw, 2.5rem);
+    align-items: start;
+  }
+
+  @media (max-width: 60rem) {
+    .archive__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 46rem) {
+    .archive__topics {
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .archive__grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
   }
 </style>

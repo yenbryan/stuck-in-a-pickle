@@ -1,19 +1,27 @@
 ---
-import CategoryTag from '../../components/CategoryTag.astro';
 import NewsletterBox from '../../components/NewsletterBox.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
+import StoryCard from '../../components/StoryCard.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { STORY_CATEGORIES, type StoryCategory } from '../../types/story';
-import { categorySlug, formatStoryDate, getAllStories } from '../../utils/stories';
+import { categorySlug, getAllStories } from '../../utils/stories';
 
 export function getStaticPaths() {
-  return STORY_CATEGORIES.map((category) => ({ params: { category: categorySlug(category) }, props: { category } }));
+  return STORY_CATEGORIES.map((category) => ({
+    params: { category: categorySlug(category) },
+    props: { category },
+  }));
 }
-interface Props { category: StoryCategory; }
+
+interface Props {
+  category: StoryCategory;
+}
+
 const { category } = Astro.props;
 const allStories = await getAllStories();
 const stories = allStories.filter((story) => story.category === category);
+
 const descriptions: Record<StoryCategory, string> = {
   AI: 'Machines doing an unsettlingly accurate impression of management.',
   Technology: 'New solutions, complete with newer and more interesting problems.',
@@ -22,50 +30,99 @@ const descriptions: Record<StoryCategory, string> = {
   Work: 'Where productivity goes to update its status.',
   Internet: 'Everyone is typing. Nobody is okay.',
   Life: 'Ordinary existence, now available as a subscription.',
+  Science: 'The universe submits another confusing progress report.',
   Humanity: 'A long-running public beta with no rollback plan.',
 };
 ---
 
-<BaseLayout title={`${category} comics — The Pickle`} description={descriptions[category]} canonicalPath={`/category/${categorySlug(category)}`} image="/og.png">
+<BaseLayout
+  title={`${category} comics — Stuck in a Pickle`}
+  description={descriptions[category]}
+  canonicalPath={`/category/${categorySlug(category)}`}
+  image="/og.png"
+>
   <SiteHeader />
-  <main id="main-content" class="page-shell category-page">
-    <header class="page-intro"><CategoryTag category={category} linked={false} /><h1>{category}</h1><p>{descriptions[category]}</p><span>{stories.length} {stories.length === 1 ? 'comic' : 'comics'} currently in the jar</span></header>
-    {stories.length > 0 ? <div class="category-list">
-      {stories.map((story, index) => (
-        <article>
-          <div class="story-index"><span>{String(index + 1).padStart(2, '0')}</span><time datetime={story.publishedAt.toISOString()}>{formatStoryDate(story.publishedAt)}</time></div>
-          <div><h2><a href={`/comic/${story.slug}`}>{story.title}</a></h2><p class="summary">{story.summary}</p><p class="absurdity"><strong>The pickle:</strong> {story.absurdity}</p></div>
-          <a class="read" href={`/comic/${story.slug}`} aria-label={`Read ${story.title}`}>Read →</a>
-        </article>
-      ))}
-    </div> : <p class="empty">Nothing here yet. Humanity must be taking the afternoon off.</p>}
+
+  <main id="main-content" class="shell category">
+    <header class="category__intro">
+      <p class="label">Topic</p>
+      <h1 class="headline">{category}</h1>
+      <p class="lede">{descriptions[category]}</p>
+      <p class="meta category__count">
+        {stories.length} {stories.length === 1 ? 'comic' : 'comics'} currently in the jar
+      </p>
+    </header>
+
+    {stories.length > 0 ? (
+      <div class="category__grid">
+        {stories.map((story) => <StoryCard story={story} variant="feed" headingLevel={2} />)}
+      </div>
+    ) : (
+      <div class="category__empty">
+        <img src="/images/pickle-jar-character.webp" width="300" height="300" alt="" loading="lazy" decoding="async" />
+        <p>Nothing here yet. Humanity must be taking the afternoon off.</p>
+        <a class="button" href="/archive">Browse the whole archive</a>
+      </div>
+    )}
+
     <NewsletterBox />
   </main>
+
   <SiteFooter />
 </BaseLayout>
 
 <style>
-  .category-page { padding-block: clamp(3rem, 8vw, 6rem); }
-  .page-intro { position: relative; max-width: 58rem; padding-bottom: 2.5rem; border-bottom: 3px double var(--ink); }
-  h1 { margin: 0.35rem 0 0; font-family: var(--serif); font-size: clamp(4rem, 12vw, 10rem); letter-spacing: -0.075em; line-height: 0.8; }
-  .page-intro p { max-width: 42rem; margin: 1.2rem 0 0; color: var(--muted); font-family: var(--serif); font-size: clamp(1.15rem, 2.2vw, 1.5rem); }
-  .page-intro > span { position: absolute; right: 0; bottom: 2.5rem; color: var(--muted); font-size: 0.65rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
-  .category-list article { display: grid; grid-template-columns: 8rem 1fr auto; gap: clamp(1rem, 4vw, 3rem); padding-block: clamp(1.8rem, 4vw, 3rem); border-bottom: 1px solid var(--rule); }
-  .story-index span { display: block; color: var(--rule); font-family: var(--serif); font-size: 3rem; font-weight: 900; line-height: 0.8; }
-  .story-index time { display: block; margin-top: 0.7rem; color: var(--muted); font-size: 0.62rem; font-weight: 800; text-transform: uppercase; }
-  h2 { max-width: 48rem; margin: 0; font-family: var(--serif); font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.045em; line-height: 0.98; }
-  h2 a { text-decoration: none; }
-  h2 a:hover { text-decoration: underline 0.07em; text-underline-offset: 0.12em; }
-  .summary { max-width: 45rem; margin: 0.8rem 0 0; color: var(--muted); font-family: var(--serif); font-size: 1.08rem; }
-  .absurdity { max-width: 45rem; margin: 0.8rem 0 0; font-family: var(--serif); }
-  .absurdity strong { color: var(--pickle-dark); font-family: var(--sans); font-size: 0.67rem; letter-spacing: 0.08em; text-transform: uppercase; }
-  .read { align-self: center; font-size: 0.7rem; font-weight: 850; text-transform: uppercase; }
-  .empty { padding-block: 4rem; font-family: var(--serif); font-size: 1.3rem; font-style: italic; }
-  @media (max-width: 42rem) {
-    .page-intro > span { position: static; display: block; margin-top: 1rem; }
-    .category-list article { grid-template-columns: 3rem 1fr; }
-    .story-index span { font-size: 2rem; }
-    .story-index time { writing-mode: vertical-rl; }
-    .read { grid-column: 2; }
+  .category {
+    padding-block: clamp(2rem, 4vw, 3rem) 0;
+  }
+
+  .category__intro {
+    max-width: 42rem;
+    padding-bottom: var(--s-6);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .category__intro .headline {
+    margin: 0.5rem 0 0.75rem;
+  }
+
+  .category__count {
+    margin-top: 0.9rem;
+  }
+
+  .category__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2.25rem, 4vw, 3rem);
+    margin-top: var(--s-12);
+    align-items: start;
+  }
+
+  /* One of the places the mascot earns its keep. */
+  .category__empty {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    padding-block: var(--s-18);
+    text-align: center;
+  }
+
+  .category__empty img {
+    width: 8rem;
+    height: auto;
+    opacity: 0.9;
+  }
+
+  .category__empty p {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 36, "wght" 600, "SOFT" 24, "WONK" 1;
+    font-size: 1.35rem;
+  }
+
+  @media (max-width: 46rem) {
+    .category__grid {
+      grid-template-columns: 1fr;
+      gap: 2.25rem;
+    }
   }
 </style>

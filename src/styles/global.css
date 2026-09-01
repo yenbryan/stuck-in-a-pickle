@@ -1,78 +1,340 @@
+/* ==========================================================================
+   Stuck in a Pickle — foundations
+   Two families, ten colours, one spacing scale.
+   Fraunces carries the personality; Nunito carries the information.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/fraunces-latin-variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Nunito";
+  src: url("/fonts/nunito-latin-variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+}
+
 :root {
-  --paper: #f4efe3;
-  --paper-deep: #ebe2cf;
-  --ink: #202219;
-  --muted: #68695f;
-  --pickle: #667a36;
-  --pickle-dark: #3f5120;
-  --pickle-pale: #dfe5c5;
-  --tomato: #bd563e;
-  --rule: rgba(32, 34, 25, 0.28);
-  --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
-  --sans: "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
-  --page: 72rem;
-  --reading: 46rem;
+  /* -- paper: three values, so sections can exist without cards -- */
+  --paper: #f4efe1;
+  --paper-sunk: #e9e2cf;
+  --paper-raised: #fcfaf2;
+
+  /* -- ink -- */
+  --ink: #15180e;
+  --ink-soft: #575b4a;   /* 6.0:1 on paper */
+  --ink-faint: #666b4e;  /* 4.8:1 on paper */
+
+  /* -- pickle -- */
+  --pickle: #5c7130;      /* 4.7:1 — links, rules, category */
+  --pickle-deep: #35441a; /* 9.1:1 — labels, buttons */
+  --brine: #e2e8c6;
+
+  /* -- the one rationed accent: the Today's pickle flag, and the
+        Why this is ridiculous label. Nowhere else. -- */
+  --tomato: #a8442d;      /* 5.1:1 on paper */
+
+  --hair: rgba(21, 24, 14, 0.16);
+  --hair-strong: rgba(21, 24, 14, 0.3);
+  --visited: #4a5535;
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-text: "Nunito", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  /* -- 4 8 12 16 24 32 48 72 112 -- */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-6: 1.5rem;
+  --s-8: 2rem;
+  --s-12: 3rem;
+  --s-18: 4.5rem;
+  --s-28: 7rem;
+
+  --page: 76rem;    /* outer shell */
+  --stage: 64rem;   /* comic maximum */
+  --reading: 44rem; /* story column */
+  --measure: 34rem; /* one sentence, ~62 characters */
+  --gutter: 1.5rem;
+
   color-scheme: light;
 }
 
-* { box-sizing: border-box; }
+@media (max-width: 46rem) {
+  :root {
+    --s-28: 3.5rem;
+    --s-18: 3rem;
+    --gutter: 1.25rem;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 html {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--sans);
+  font-family: var(--font-text);
   scroll-behavior: smooth;
 }
 
 body {
-  margin: 0;
   min-width: 20rem;
-  background:
-    linear-gradient(rgba(32, 34, 25, 0.018) 1px, transparent 1px) 0 0 / 100% 4px,
-    var(--paper);
+  margin: 0;
+  background: var(--paper);
   font-size: 1rem;
-  line-height: 1.65;
+  font-weight: 500;
+  line-height: 1.6;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
-::selection { background: var(--pickle-pale); }
+h1, h2, h3, h4, h5, h6, p, figure, blockquote, ul, ol, dl, dd {
+  margin: 0;
+}
+
+ul[class], ol[class] {
+  padding: 0;
+  list-style: none;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--brine);
+}
+
+/* --------------------------------------------------------------------------
+   Links — underlines are the only decoration. No colour-only links.
+   -------------------------------------------------------------------------- */
 
 a {
   color: inherit;
   text-decoration-color: var(--pickle);
-  text-decoration-thickness: 0.09em;
+  text-decoration-thickness: 0.08em;
   text-underline-offset: 0.18em;
 }
 
+a:visited {
+  text-decoration-color: var(--visited);
+}
+
 a:hover {
-  color: var(--pickle-dark);
-  text-decoration-thickness: 0.16em;
+  color: var(--pickle-deep);
+  text-decoration-thickness: 0.14em;
 }
 
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-summary:focus-visible {
+:focus-visible {
   outline: 3px solid var(--tomato);
-  outline-offset: 4px;
+  outline-offset: 3px;
 }
 
-img { display: block; max-width: 100%; }
-button, input { font: inherit; }
+/* --------------------------------------------------------------------------
+   Type roles — named after what they are, not how big they are.
+   font-variation-settings overrides font-weight, so wght travels with it.
+   -------------------------------------------------------------------------- */
 
-.page-shell {
-  width: min(calc(100% - 2rem), var(--page));
+.headline {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 120, "wght" 700, "SOFT" 40, "WONK" 1;
+  font-size: clamp(2.05rem, 1.35rem + 2.9vw, 3.45rem);
+  line-height: 1.03;
+  letter-spacing: -0.024em;
+  text-wrap: balance;
+}
+
+.title-lg {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 56, "wght" 650, "SOFT" 30, "WONK" 1;
+  font-size: clamp(1.65rem, 1.3rem + 1.4vw, 2.15rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 40, "wght" 600, "SOFT" 26, "WONK" 0;
+  font-size: clamp(1.32rem, 1.1rem + 0.9vw, 1.6rem);
+  line-height: 1.14;
+  letter-spacing: -0.016em;
+  text-wrap: pretty;
+}
+
+.title-sm {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 30, "wght" 600, "SOFT" 22, "WONK" 0;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 72, "wght" 700, "SOFT" 32, "WONK" 1;
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+  line-height: 1.06;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+
+.punchline {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 24, "wght" 600, "SOFT" 20, "WONK" 0;
+  font-size: clamp(1.12rem, 1rem + 0.55vw, 1.35rem);
+  line-height: 1.36;
+  letter-spacing: -0.006em;
+  max-width: var(--measure);
+}
+
+.lede {
+  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+  line-height: 1.6;
+  max-width: var(--measure);
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.145em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--pickle-deep);
+}
+
+.label--flag {
+  color: var(--tomato);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.meta {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink-soft);
+}
+
+/* --------------------------------------------------------------------------
+   Layout helpers
+   -------------------------------------------------------------------------- */
+
+.shell {
+  width: min(100% - (var(--gutter) * 2), var(--page));
   margin-inline: auto;
 }
 
-.eyebrow {
-  margin: 0 0 0.65rem;
-  color: var(--pickle-dark);
+.reading {
+  width: min(100%, var(--reading));
+  margin-inline: auto;
+}
+
+/* A tonal band. Does the job a card would have done, without the card. */
+.band {
+  background: var(--paper-sunk);
+  border-block: 1px solid var(--hair);
+  padding-block: var(--s-12);
+}
+
+/* A section opens on a 2px rule with a label sitting on it. */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4) var(--s-6);
+  flex-wrap: wrap;
+  padding-bottom: var(--s-3);
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: var(--s-8);
+}
+
+.section-head__aside {
+  margin-left: auto;
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.16em;
-  line-height: 1.2;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: var(--pickle-deep);
+}
+
+/* Standalone uppercase navigation labels carry their affordance in position and
+   case. A resting underline on every one of them is just noise, so they
+   underline on interaction instead. Inline prose links keep theirs. */
+a.section-head__aside,
+.microlink {
+  text-decoration: none;
+}
+
+/* Standalone links get a 24px target even when the label itself is 12px. */
+a.section-head__aside,
+a.microlink,
+.tap-target {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+}
+
+a.section-head__aside:hover,
+a.section-head__aside:focus-visible,
+.microlink:hover,
+.microlink:focus-visible {
+  text-decoration: underline;
+  text-decoration-thickness: 0.1em;
+  text-underline-offset: 0.28em;
+}
+
+/* The one filled control on the site. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0.7rem 1.25rem;
+  border: 1px solid var(--pickle-deep);
+  border-radius: 3px;
+  background: var(--pickle-deep);
+  color: var(--paper-raised);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper-raised);
+}
+
+.button--quiet {
+  background: transparent;
+  color: var(--pickle-deep);
+}
+
+.button--quiet:hover {
+  background: var(--brine);
+  border-color: var(--pickle-deep);
+  color: var(--pickle-deep);
 }
 
 .skip-link {
@@ -81,22 +343,40 @@ button, input { font: inherit; }
   top: 0.75rem;
   left: 0.75rem;
   translate: 0 -200%;
-  padding: 0.65rem 0.9rem;
+  padding: 0.7rem 1rem;
   background: var(--ink);
   color: var(--paper);
   font-weight: 800;
 }
 
-.skip-link:focus { translate: 0; }
+.skip-link:focus {
+  translate: 0;
+}
 
-@media (max-width: 42rem) {
-  .page-shell { width: min(calc(100% - 1.25rem), var(--page)); }
+/* The enlarge view is a fixed overlay; stop the page scrolling behind it. */
+body:has(.comic-viewer:target) {
+  overflow: hidden;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

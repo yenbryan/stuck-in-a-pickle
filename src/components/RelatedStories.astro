@@ -1,40 +1,48 @@
 ---
 import type { Story } from '../types/story';
-import CategoryTag from './CategoryTag.astro';
-interface Props { stories: Story[]; }
+import StoryCard from './StoryCard.astro';
+
+interface Props {
+  stories: Story[];
+}
+
 const { stories } = Astro.props;
 ---
 
-<section class="related" aria-labelledby="more-nonsense">
-  <div class="section-kicker"><span>Also unfortunately</span><h2 id="more-nonsense">More nonsense</h2></div>
-  <div class="related-list">
-    {stories.map((story, index) => (
-      <article>
-        <span class="number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-        <CategoryTag category={story.category} />
-        <h3><a href={`/comic/${story.slug}`}>{story.title}</a></h3>
-        <p>{story.absurdity}</p>
-      </article>
-    ))}
-  </div>
-</section>
+{stories.length > 0 && (
+  <section class="related" aria-labelledby="related-title">
+    <div class="section-head">
+      <h2 class="label" id="related-title">More nonsense</h2>
+      <a class="section-head__aside" href="/archive">The whole archive <span aria-hidden="true">&rarr;</span></a>
+    </div>
+    <div class="related__grid">
+      {stories.map((story) => <StoryCard story={story} variant="related" showDate={false} />)}
+    </div>
+  </section>
+)}
 
 <style>
-  .related { margin-block: 4rem; }
-  .section-kicker { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding-bottom: 0.65rem; border-bottom: 2px solid var(--ink); }
-  .section-kicker span { color: var(--muted); font-size: 0.65rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
-  h2 { margin: 0; font-family: var(--serif); font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.04em; line-height: 1; }
-  .related-list { display: grid; grid-template-columns: repeat(3, 1fr); }
-  article { position: relative; padding: 1.5rem; }
-  article + article { border-left: 1px solid var(--rule); }
-  .number { position: absolute; top: 1.15rem; right: 1.25rem; color: var(--rule); font-family: var(--serif); font-size: 1.5rem; font-weight: 900; }
-  h3 { margin: 0.55rem 0 0.7rem; font-family: var(--serif); font-size: clamp(1.35rem, 2.4vw, 1.85rem); letter-spacing: -0.025em; line-height: 1.07; }
-  h3 a { text-decoration: none; }
-  h3 a:hover { text-decoration: underline 0.08em; text-underline-offset: 0.12em; }
-  article p { margin: 0; color: var(--muted); font-family: var(--serif); font-size: 0.98rem; line-height: 1.4; }
-  @media (max-width: 46rem) {
-    .related-list { grid-template-columns: 1fr; }
-    article { padding-inline: 0; }
-    article + article { border-top: 1px solid var(--rule); border-left: 0; }
+  .related {
+    margin-top: var(--s-28);
+  }
+
+  .related__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.5rem, 3vw, 2rem);
+    align-items: start;
+  }
+
+  @media (max-width: 52rem) {
+    .related__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .related__grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
   }
 </style>

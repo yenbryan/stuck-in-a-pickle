@@ -1,0 +1,265 @@
+---
+import { Image } from 'astro:assets';
+import type { ComicVariant, Story } from '../types/story';
+import { getComicAsset, getComicAssetByPath, hasComicArtwork } from '../utils/stories';
+
+/**
+ * The comic gets a stage, not a card.
+ *
+ * No mat and no border: the artwork is trimmed flush to its own drawn panel
+ * frame (scripts/trim-comics.mjs), so a border here would sit just outside it
+ * as a second, wobbly line. Full-bleed on phones, plus a CSS-only enlarge view
+ * so the artwork is actually readable on the device where most shared links
+ * get opened. No JavaScript.
+ */
+interface Props {
+  story: Story;
+  /** The hero comic on a page loads eagerly; anything else waits. */
+  priority?: boolean;
+  /** Rendered width hint for srcset selection. */
+  sizes?: string;
+  /** Optional second take on the same story. */
+  artwork?: ComicVariant;
+  /** Keeps enlarge-view anchors unique when a story has more than one comic. */
+  instance?: string;
+}
+
+const {
+  story,
+  priority = false,
+  sizes = '(min-width: 79rem) 1216px, 100vw',
+  artwork,
+  instance,
+} = Astro.props;
+
+const comicImage = artwork?.image ?? story.comicImage;
+const comicImageAlt = artwork?.imageAlt ?? story.comicImageAlt;
+const comicTitle = artwork?.title ?? story.title;
+const comicPanels = artwork?.panels ?? story.comicPanels;
+const asset = artwork ? getComicAssetByPath(comicImage) : getComicAsset(story);
+const hasArt = Boolean(asset) && (artwork ? Boolean(comicImage) : hasComicArtwork(story));
+const idSuffix = instance ? `-${instance}` : '';
+const viewerId = `enlarge-${story.slug}${idSuffix}`;
+const anchorId = `comic-${story.slug}${idSuffix}`;
+---
+
+<figure class="stage" id={anchorId}>
+  {hasArt && asset ? (
+    <>
+      <a class="stage__frame" href={`#${viewerId}`} aria-label={`Enlarge the comic: ${comicTitle}`}>
+        <Image
+          src={asset}
+          alt={comicImageAlt}
+          widths={[640, 960, 1280, 1600]}
+          sizes={sizes}
+          loading={priority ? 'eager' : 'lazy'}
+          fetchpriority={priority ? 'high' : 'auto'}
+          decoding="async"
+        />
+      </a>
+      <figcaption class="stage__hint">
+        <span aria-hidden="true">⤢</span> Tap to enlarge
+      </figcaption>
+    </>
+  ) : (
+    <div class="stage__script">
+      <p class="label">Artwork in progress — the script so far</p>
+      <ol>
+        {comicPanels.map((line) => <li>{line}</li>)}
+      </ol>
+    </div>
+  )}
+</figure>
+
+{hasArt && asset && (
+  <div class="comic-viewer" id={viewerId} aria-label={`${comicTitle} — enlarged`}>
+    <a class="comic-viewer__scrim" href={`#${anchorId}`} tabindex="-1" aria-hidden="true"></a>
+    <div class="comic-viewer__bar">
+      <p>{comicTitle}</p>
+      <a href={`#${anchorId}`}>Close <span aria-hidden="true">✕</span></a>
+    </div>
+    <div class="comic-viewer__body">
+      <Image
+        src={asset}
+        alt={comicImageAlt}
+        width={asset.width}
+        height={asset.height}
+        loading="lazy"
+        decoding="async"
+        style={`--natural:${asset.width}px`}
+      />
+    </div>
+    <p class="comic-viewer__foot">Pinch to zoom · drag to pan</p>
+  </div>
+)}
+
+<style>
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scroll-margin-top: 1rem;
+  }
+
+  .stage__frame {
+    display: block;
+    width: 100%;
+    line-height: 0;
+    text-decoration: none;
+  }
+
+  .stage__frame img {
+    width: 100%;
+    height: auto;
+  }
+
+  .stage__hint {
+    align-self: flex-start;
+    margin-top: 0.6rem;
+    color: var(--ink-faint);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .stage__script {
+    width: 100%;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px dashed var(--hair-strong);
+    background: var(--paper-raised);
+  }
+
+  .stage__script ol {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0.9rem 0 0;
+    padding-left: 1.4rem;
+  }
+
+  .stage__script li {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 24, "wght" 600, "SOFT" 20, "WONK" 0;
+    font-size: 1.05rem;
+    line-height: 1.4;
+  }
+
+  /* -- the enlarge view ------------------------------------------------- */
+
+  .comic-viewer {
+    display: none;
+  }
+
+  .comic-viewer:target {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    /* an auto column would size to max-content and push Close off-screen */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    background: #0e1008;
+    color: #f4efe1;
+  }
+
+  .comic-viewer > * {
+    min-width: 0;
+  }
+
+  .comic-viewer__scrim {
+    position: absolute;
+    inset: 0;
+  }
+
+  .comic-viewer__bar,
+  .comic-viewer__foot {
+    position: relative;
+    z-index: 1;
+  }
+
+  .comic-viewer__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 0.9rem clamp(1rem, 3vw, 1.75rem);
+    border-bottom: 1px solid rgba(244, 239, 225, 0.18);
+  }
+
+  .comic-viewer__bar p {
+    /* without min-width:0 this refuses to shrink and shoves Close off-screen */
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .comic-viewer__bar a {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding-inline: 0.6rem;
+    color: #f4efe1;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .comic-viewer__bar a:hover {
+    color: #cfe08a;
+  }
+
+  .comic-viewer__body {
+    position: relative;
+    z-index: 1;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 0.6rem;
+  }
+
+  .comic-viewer__body img {
+    width: min(var(--natural, 1400px), 240vw);
+    max-width: none;
+    height: auto;
+    margin-inline: auto;
+  }
+
+  .comic-viewer__foot {
+    padding: 0.7rem 1rem;
+    border-top: 1px solid rgba(244, 239, 225, 0.18);
+    color: rgba(244, 239, 225, 0.62);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  /* -- phones: the comic takes the whole width it can get ---------------- */
+
+  @media (max-width: 46rem) {
+    .stage {
+      margin-inline: calc(var(--gutter) * -1);
+    }
+
+    .stage__hint {
+      margin-inline: var(--gutter);
+      color: var(--pickle-deep);
+    }
+
+    .stage__script {
+      margin-inline: var(--gutter);
+      width: auto;
+    }
+  }
+
+  @media (min-width: 60rem) {
+    .comic-viewer__body img {
+      width: min(var(--natural, 1400px), 145vw);
+    }
+  }
+</style>

@@ -1,160 +1,293 @@
 ---
-import AbsurdityBox from '../components/AbsurdityBox.astro';
-import CategoryTag from '../components/CategoryTag.astro';
-import ComicImage from '../components/ComicImage.astro';
+import ComicStage from '../components/ComicStage.astro';
 import NewsletterBox from '../components/NewsletterBox.astro';
-import NewsSummary from '../components/NewsSummary.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
-import StoryIntro from '../components/StoryIntro.astro';
+import StoryBrief from '../components/StoryBrief.astro';
+import StoryCard from '../components/StoryCard.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { STORY_CATEGORIES } from '../types/story';
 import { categorySlug, formatStoryDate, getAllStories, getFeaturedStory } from '../utils/stories';
 
 const stories = await getAllStories();
 const featured = await getFeaturedStory();
-const today = stories.filter((story) => story.slug !== featured.slug).slice(0, 4);
-const previous = stories.filter((story) => story.evergreen && story.slug !== featured.slug && !today.some((item) => item.slug === story.slug)).slice(0, 3);
-const topics = [
-  ['AI', 'Machines doing their best impression of us.'],
-  ['Politics', 'Systems working exactly as designed.'],
-  ['Work', 'Where efficiency goes for meetings.'],
-  ['Internet', 'Everyone is typing. Nobody is okay.'],
-  ['Technology', 'New solutions, now with new problems.'],
-  ['Humanity', 'A long-running public beta.'],
-];
+
+const rest = stories.filter((story) => story.slug !== featured.slug);
+const recent = rest.slice(0, 4);
+// One second feature, then a row of three. The row's baselines go ragged on
+// their own because each comic keeps its true aspect ratio.
+const [lead, ...trio] = recent;
+const evergreen = rest
+  .filter((story) => story.evergreen && !recent.some((item) => item.slug === story.slug))
+  .slice(0, 3);
 ---
 
 <BaseLayout image="/og.png">
   <SiteHeader />
-  <main id="main-content" class="page-shell">
-    <p class="today-line"><span aria-hidden="true">☞</span> Here is what civilization did today.</p>
 
-    <article class="featured-story">
-      <p class="big-pickle">Today’s big pickle</p>
-      <StoryIntro story={featured} />
-      <div class="explainer-grid"><NewsSummary summary={featured.summary} /><AbsurdityBox absurdity={featured.absurdity} /></div>
-      <ComicImage alt={featured.comicImageAlt} panels={featured.comicPanels} image={featured.comicImage} />
-      <footer class="feature-footer">
-        <p><strong>Fictional preview</strong> · Filed under {featured.tags.map((tag, index) => <>{index > 0 && ', '}<a href={`/archive#${tag.toLowerCase().replaceAll(' ', '-')}`}>{tag}</a></>)}</p>
-        <div><a href={`/comic/${featured.slug}`}>Read the whole pickle <span aria-hidden="true">→</span></a><button class="share-button" type="button" data-share-url={`/comic/${featured.slug}`}>Copy link</button></div>
-      </footer>
-    </article>
+  <main id="main-content">
+    <div class="shell">
+      <article class="hero">
+        <p class="hero__flag">
+          <span class="label label--flag">Today&rsquo;s pickle</span>
+          <span class="hero__dot" aria-hidden="true"></span>
+          <a class="hero__category" href={`/category/${categorySlug(featured.category)}`}>{featured.category}</a>
+          <span class="hero__dot" aria-hidden="true"></span>
+          <time class="meta" datetime={featured.publishedAt.toISOString()}>{formatStoryDate(featured.publishedAt)}</time>
+        </p>
 
-    <section class="daily-section" aria-labelledby="todays-pickles">
-      <header class="section-header"><div><p>Fresh from the jar</p><h2 id="todays-pickles">Today’s pickles</h2></div><span>{String(today.length).padStart(2, '0')} dispatches from modern life</span></header>
-      <div class="story-ledger">
-        {today.map((story, index) => (
-          <article class="ledger-item">
-            <div class="ledger-number"><span>{String(index + 1).padStart(2, '0')}</span><time datetime={story.publishedAt.toISOString()}>{formatStoryDate(story.publishedAt)}</time></div>
-            <div class="ledger-copy">
-              <CategoryTag category={story.category} />
-              <h3><a href={`/comic/${story.slug}`}>{story.title}</a></h3>
-              <p>{story.summary}</p>
-            </div>
-            <div class="ledger-pickle"><span>The pickle</span><p>{story.absurdity}</p><a href={`/comic/${story.slug}`} aria-label={`Read ${story.title}`}>Read comic →</a></div>
-          </article>
-        ))}
+        <h1 class="headline">
+          <a href={`/comic/${featured.slug}`}>{featured.title}</a>
+        </h1>
+
+        <StoryBrief story={featured} layout="split" idPrefix="hero" />
+
+        <div class="hero__stage">
+          <ComicStage story={featured} priority />
+        </div>
+
+        <p class="hero__source">
+          {featured.fictional ? (
+            <span>Fictional demonstration story.</span>
+          ) : (
+            <span>Based on reporting from <a href={featured.sourceUrl} rel="external noreferrer">{featured.sourceName}</a>.</span>
+          )}
+          <a class="hero__more microlink" href={`/comic/${featured.slug}`}>Read the story <span aria-hidden="true">&rarr;</span></a>
+        </p>
+      </article>
+
+      <section class="feed-section" aria-labelledby="feed-title">
+        <div class="section-head">
+          <h2 class="label" id="feed-title">The rest of the jar</h2>
+          <a class="section-head__aside" href="/archive">All {stories.length} comics <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <div class="feed">
+          <StoryCard story={lead} variant="lead" />
+          <div class="feed__trio">
+            {trio.map((story) => <StoryCard story={story} variant="feed" />)}
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="band">
+      <div class="shell">
+        <section aria-labelledby="evergreen-title">
+          <div class="section-head">
+            <h2 class="label" id="evergreen-title">Previously in civilization</h2>
+            <p class="section-head__aside">Still unfortunately relevant</p>
+          </div>
+          <div class="evergreen">
+            {evergreen.map((story) => <StoryCard story={story} variant="related" showDate={false} />)}
+          </div>
+        </section>
+
+        <div class="dice">
+          <p class="dice__lead">{stories.length} comics in the jar, and no wrong order to read them in.</p>
+          <a class="button" href="/random">Give me a random one</a>
+        </div>
+
+        <nav class="topics" id="topics" aria-labelledby="topics-title">
+          <h2 class="label" id="topics-title">By predicament</h2>
+          <ul class="topics__list">
+            {STORY_CATEGORIES.map((category) => (
+              <li><a href={`/category/${categorySlug(category)}`}>{category}</a></li>
+            ))}
+          </ul>
+        </nav>
       </div>
-    </section>
+    </div>
 
-    <section class="previous-section" aria-labelledby="previously">
-      <header class="section-header"><div><p>From the compost heap</p><h2 id="previously">Previously in civilization</h2></div><a href="/archive">Open the entire archive →</a></header>
-      <div class="previous-grid">
-        {previous.map((story) => (
-          <article><CategoryTag category={story.category} /><h3><a href={`/comic/${story.slug}`}>{story.title}</a></h3><p>{story.absurdity}</p><time datetime={story.publishedAt.toISOString()}>{formatStoryDate(story.publishedAt)}</time></article>
-        ))}
-      </div>
-    </section>
-
-    <section class="topics" aria-labelledby="topics-title">
-      <div class="topics-intro"><p class="eyebrow">Choose your problem</p><h2 id="topics-title">Browse by whatever is going extremely well.</h2></div>
-      <nav aria-label="Browse topics">
-        {topics.map(([label, description], index) => <a href={`/category/${categorySlug(label)}`}><span>{String(index + 1).padStart(2, '0')}</span><strong>{label}</strong><small>{description}</small><b aria-hidden="true">→</b></a>)}
-      </nav>
-    </section>
-
-    <NewsletterBox />
+    <div class="shell">
+      <NewsletterBox />
+    </div>
   </main>
-  <SiteFooter />
 
-  <script>
-    document.querySelectorAll<HTMLButtonElement>('[data-share-url]').forEach((button) => {
-      button.addEventListener('click', async () => {
-        const url = new URL(button.dataset.shareUrl ?? '/', window.location.origin).toString();
-        await navigator.clipboard.writeText(url);
-        button.textContent = 'Copied!';
-        window.setTimeout(() => { button.textContent = 'Copy link'; }, 1600);
-      });
-    });
-  </script>
+  <SiteFooter />
 </BaseLayout>
 
 <style>
-  .today-line { margin: 1.5rem auto 0; color: var(--muted); font-family: var(--serif); font-size: clamp(1rem, 2vw, 1.22rem); font-style: italic; text-align: center; }
-  .today-line span { display: inline-block; margin-right: 0.25rem; rotate: -8deg; color: var(--tomato); font-style: normal; }
-  .featured-story { padding-block: clamp(2rem, 4vw, 3.5rem) clamp(3.5rem, 7vw, 5.5rem); }
-  .big-pickle { width: fit-content; margin: 0 auto 1.2rem; padding: 0.25rem 0.7rem; rotate: -1.5deg; border: 1px solid var(--tomato); color: var(--tomato); font-size: 0.65rem; font-weight: 900; letter-spacing: 0.13em; text-transform: uppercase; }
-  .explainer-grid { display: grid; grid-template-columns: 1fr 1fr; max-width: 56rem; margin: clamp(2.75rem, 6vw, 4.5rem) auto 0; border-block: 1px solid var(--ink); }
-  .explainer-grid > :global(section + section) { border-left: 1px solid var(--ink); }
-  .feature-footer { display: flex; justify-content: space-between; align-items: center; gap: 1.25rem; max-width: 58rem; margin: 1.5rem auto 0; font-size: 0.76rem; }
-  .feature-footer p { margin: 0; color: var(--muted); }
-  .feature-footer div { display: flex; gap: 1rem; align-items: center; flex: 0 0 auto; }
-  .feature-footer a { font-weight: 850; }
-  .share-button { padding: 0; border: 0; border-bottom: 1px solid var(--pickle); background: transparent; color: var(--ink); cursor: pointer; font-size: 0.72rem; font-weight: 800; }
-  .section-header { display: flex; justify-content: space-between; align-items: end; gap: 2rem; padding-bottom: 0.8rem; border-bottom: 2px solid var(--ink); }
-  .section-header p { margin: 0 0 0.25rem; color: var(--muted); font-size: 0.65rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-  .section-header h2 { margin: 0; font-family: var(--serif); font-size: clamp(2.4rem, 5vw, 4.6rem); letter-spacing: -0.05em; line-height: 0.95; }
-  .section-header > span, .section-header > a { max-width: 15rem; color: var(--muted); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em; text-align: right; text-transform: uppercase; }
-  .story-ledger { counter-reset: ledger; }
-  .ledger-item { display: grid; grid-template-columns: 8rem minmax(0, 1.6fr) minmax(16rem, 0.85fr); gap: clamp(1.25rem, 4vw, 3rem); padding-block: clamp(1.6rem, 4vw, 2.7rem); border-bottom: 1px solid var(--rule); }
-  .ledger-number span { display: block; color: var(--rule); font-family: var(--serif); font-size: 3.2rem; font-weight: 900; line-height: 0.9; }
-  .ledger-number time { display: block; margin-top: 0.65rem; color: var(--muted); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
-  .ledger-copy h3 { max-width: 38rem; margin: 0.5rem 0 0.7rem; font-family: var(--serif); font-size: clamp(1.9rem, 3.8vw, 3.25rem); letter-spacing: -0.04em; line-height: 1; }
-  .ledger-copy h3 a { text-decoration: none; }
-  .ledger-copy h3 a:hover { text-decoration: underline 0.07em; text-underline-offset: 0.12em; }
-  .ledger-copy p { max-width: 38rem; margin: 0; color: var(--muted); font-family: var(--serif); font-size: 1.05rem; }
-  .ledger-pickle { align-self: center; padding-left: 1.4rem; border-left: 1px solid var(--rule); }
-  .ledger-pickle span { color: var(--pickle-dark); font-size: 0.64rem; font-weight: 850; letter-spacing: 0.11em; text-transform: uppercase; }
-  .ledger-pickle p { margin: 0.35rem 0 0.75rem; font-family: var(--serif); font-size: 1.05rem; font-weight: 700; line-height: 1.35; }
-  .ledger-pickle a { font-size: 0.68rem; font-weight: 850; text-transform: uppercase; }
-  .previous-section { margin-top: clamp(4rem, 9vw, 7rem); }
-  .previous-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
-  .previous-grid article { padding: 1.6rem; }
-  .previous-grid article + article { border-left: 1px solid var(--rule); }
-  .previous-grid h3 { margin: 0.6rem 0 0.8rem; font-family: var(--serif); font-size: clamp(1.45rem, 2.7vw, 2.1rem); letter-spacing: -0.03em; line-height: 1.05; }
-  .previous-grid h3 a { text-decoration: none; }
-  .previous-grid article > p { margin: 0 0 1rem; color: var(--muted); font-family: var(--serif); font-size: 0.98rem; line-height: 1.4; }
-  .previous-grid time { color: var(--muted); font-size: 0.61rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
-  .topics { display: grid; grid-template-columns: minmax(15rem, 0.75fr) 1.25fr; gap: clamp(2rem, 6vw, 5rem); margin-block: clamp(5rem, 10vw, 8rem); padding-block: 3rem; border-block: 3px double var(--ink); }
-  .topics h2 { max-width: 28rem; margin: 0; font-family: var(--serif); font-size: clamp(2.3rem, 4.5vw, 4rem); letter-spacing: -0.05em; line-height: 0.98; }
-  .topics nav { display: grid; grid-template-columns: 1fr 1fr; }
-  .topics nav a { position: relative; display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; gap: 0 0.75rem; padding: 1rem; border-bottom: 1px solid var(--rule); text-decoration: none; }
-  .topics nav a:nth-child(odd) { border-right: 1px solid var(--rule); }
-  .topics nav span { grid-row: 1 / 3; align-self: center; color: var(--rule); font-family: var(--serif); font-size: 1.4rem; font-weight: 900; }
-  .topics nav strong { font-family: var(--serif); font-size: 1.2rem; }
-  .topics nav small { color: var(--muted); }
-  .topics nav b { grid-column: 3; grid-row: 1 / 3; align-self: center; }
-  .topics nav a:hover { background: var(--pickle-pale); color: var(--ink); }
-  @media (max-width: 50rem) {
-    .ledger-item { grid-template-columns: 4rem 1fr; }
-    .ledger-pickle { grid-column: 2; padding: 1rem 0 0; border-top: 1px solid var(--rule); border-left: 0; }
-    .topics { grid-template-columns: 1fr; }
+  .hero {
+    padding-block: clamp(2rem, 4vw, 3rem) 0;
   }
-  @media (max-width: 42rem) {
-    .today-line { margin-top: 1.25rem; }
-    .featured-story { padding-top: 1.75rem; }
-    .explainer-grid { grid-template-columns: 1fr; }
-    .explainer-grid > :global(section + section) { border-top: 1px solid var(--ink); border-left: 0; }
-    .feature-footer { align-items: flex-start; flex-direction: column; }
-    .section-header { align-items: flex-start; flex-direction: column; gap: 0.7rem; }
-    .section-header > span, .section-header > a { text-align: left; }
-    .ledger-item { grid-template-columns: 2.8rem 1fr; gap: 0.8rem; }
-    .ledger-number span { font-size: 2rem; }
-    .ledger-number time { writing-mode: vertical-rl; }
-    .previous-grid { grid-template-columns: 1fr; }
-    .previous-grid article { padding-inline: 0; }
-    .previous-grid article + article { border-top: 1px solid var(--rule); border-left: 0; }
-    .topics nav { grid-template-columns: 1fr; }
-    .topics nav a:nth-child(odd) { border-right: 0; }
+
+  .hero__flag {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.8rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .hero__dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--hair-strong);
+  }
+
+  .hero__category {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    color: var(--pickle);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.145em;
+    text-transform: uppercase;
+  }
+
+  .hero__category:hover {
+    color: var(--pickle-deep);
+    text-decoration: underline;
+    text-decoration-thickness: 0.1em;
+    text-underline-offset: 0.28em;
+  }
+
+  /* The headline runs the full measure rather than sitting in a column with a
+     hole beside it. Two or three lines, then the art. */
+  .hero .headline {
+    margin-bottom: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .hero .headline a {
+    text-decoration: none;
+  }
+
+  .hero .headline a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 0.05em;
+    text-underline-offset: 0.1em;
+  }
+
+  .hero__stage {
+    margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
+  }
+
+  .hero__source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+    margin-top: 0.75rem;
+    color: var(--ink-soft);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .hero__more {
+    margin-left: auto;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pickle-deep);
+  }
+
+  .feed-section {
+    padding-block: var(--s-28) 0;
+  }
+
+  .feed {
+    display: grid;
+    gap: var(--s-18);
+  }
+
+  .feed__trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.5rem, 3vw, 2rem);
+    align-items: start;
+  }
+
+  .band {
+    margin-top: var(--s-28);
+  }
+
+  .evergreen {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: start;
+  }
+
+  .dice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    margin-top: var(--s-12);
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--hair);
+  }
+
+  .dice__lead {
+    max-width: 32ch;
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 36, "wght" 600, "SOFT" 24, "WONK" 1;
+    font-size: clamp(1.2rem, 1rem + 0.8vw, 1.45rem);
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+  }
+
+  .topics {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem clamp(2rem, 5vw, 3.5rem);
+    margin-top: var(--s-8);
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--hair);
+    scroll-margin-top: 1rem;
+  }
+
+  .topics__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .topics__list a {
+    display: inline-block;
+    padding-block: 0.25rem;
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 24, "wght" 600, "SOFT" 22, "WONK" 0;
+    font-size: 1.15rem;
+  }
+
+  @media (max-width: 61rem) {
+    .feed__trio,
+    .evergreen {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 46rem) {
+    .feed {
+      gap: var(--s-12);
+    }
+
+    .feed__trio,
+    .evergreen {
+      grid-template-columns: 1fr;
+      gap: 2.25rem;
+    }
+
+    .hero__source {
+      gap: 0.75rem;
+    }
+
+    .hero__more {
+      margin-left: 0;
+    }
+
+    .topics {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
   }
 </style>

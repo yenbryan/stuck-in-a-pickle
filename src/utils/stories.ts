@@ -1,13 +1,48 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { Story, StoryCategory } from '../types/story';
 
+/**
+ * Comic artwork lives in src/assets so astro:assets can emit per-context
+ * widths instead of shipping the 1.5-2 MB originals to a 280px thumbnail.
+ * Content frontmatter keeps its public-style path ("/comics/foo.webp"); this
+ * maps that filename onto the processed asset.
+ */
+const comicAssets = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/comics/*.{webp,avif,png,jpg,jpeg}',
+  { eager: true },
+);
+
+export function getComicAsset(story: Pick<Story, 'comicImage'>): ImageMetadata | undefined {
+  if (!hasComicArtwork(story)) return undefined;
+  return getComicAssetByPath(story.comicImage);
+}
+
+export function getComicAssetByPath(path: string): ImageMetadata | undefined {
+  const file = path.split('/').pop();
+  return file ? comicAssets[`/src/assets/comics/${file}`]?.default : undefined;
+}
+
 function toStory(entry: CollectionEntry<'comics'>): Story {
   return { id: entry.id, ...entry.data };
 }
 
 export async function getAllStories(): Promise<Story[]> {
   const entries = await getCollection('comics');
-  return entries.map(toStory).sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+  return entries.map(toStory).sort((a, b) => {
+    const dateOrder = b.publishedAt.getTime() - a.publishedAt.getTime();
+    if (dateOrder !== 0) return dateOrder;
+
+    // Keep sourced publication work ahead of fictional layout samples when
+    // several entries share a calendar date.
+    const sourceOrder = Number(a.fictional) - Number(b.fictional);
+    if (sourceOrder !== 0) return sourceOrder;
+
+    return a.title.localeCompare(b.title);
+  });
+}
+
+export function hasComicArtwork(story: Pick<Story, 'comicImage'>): boolean {
+  return Boolean(story.comicImage) && !story.comicImage.startsWith('placeholder://');
 }
 
 export async function getFeaturedStory(): Promise<Story> {
@@ -55,4 +90,10 @@ export function formatStoryDate(date: Date): string {
 
 export function formatMonth(date: Date): string {
   return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
+}
+
+/** The markdown body of a comic entry — the satire / accuracy note. */
+export async function getStoryEntry(slug: string): Promise<CollectionEntry<'comics'> | undefined> {
+  const entries = await getCollection('comics');
+  return entries.find((entry) => entry.data.slug === slug);
 }

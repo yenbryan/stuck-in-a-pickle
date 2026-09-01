@@ -1,0 +1,87 @@
+---
+import type { Story } from '../types/story';
+
+/**
+ * The two sentences that make the comic land: what happened, and what about it
+ * is ridiculous. Setup and punchline, always in that order.
+ *
+ * 'split' sets them side by side under one rule for the front page.
+ * 'stacked' reads as a single block for the story page.
+ */
+interface Props {
+  story: Story;
+  layout?: 'split' | 'stacked';
+  /** Ids for the section headings, so they stay unique on a page with several. */
+  idPrefix?: string;
+}
+
+const { story, layout = 'split', idPrefix = 'brief' } = Astro.props;
+---
+
+<div class:list={['brief', `brief--${layout}`]}>
+  <section class="brief__part" aria-labelledby={`${idPrefix}-what`}>
+    <h2 class="label" id={`${idPrefix}-what`}>What happened</h2>
+    <p class="lede">{story.summary}</p>
+  </section>
+
+  <section class="brief__part brief__part--punch" aria-labelledby={`${idPrefix}-why`}>
+    <h2 class="label label--flag" id={`${idPrefix}-why`}>Why this is ridiculous</h2>
+    <p class="punchline">{story.absurdity}</p>
+  </section>
+</div>
+
+<style>
+  .brief__part > :global(.label) {
+    display: block;
+    margin-bottom: 0.55rem;
+  }
+
+  /* front page: setup and punchline given equal weight, side by side */
+  .brief--split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 clamp(2rem, 5vw, 3.5rem);
+    padding-top: 1.1rem;
+    border-top: 2px solid var(--ink);
+  }
+
+  .brief--split .brief__part--punch {
+    padding-left: clamp(2rem, 5vw, 3.5rem);
+    border-left: 1px solid var(--hair);
+  }
+
+  /* story page: one block you scan in about three seconds */
+  .brief--stacked {
+    border-block: 2px solid var(--ink);
+  }
+
+  .brief--stacked .brief__part {
+    padding-block: 1.15rem;
+  }
+
+  .brief--stacked .brief__part + .brief__part {
+    border-top: 1px solid var(--hair);
+  }
+
+  .brief--stacked :global(.lede),
+  .brief--stacked :global(.punchline) {
+    max-width: 100%;
+  }
+
+  @media (max-width: 46rem) {
+    .brief--split {
+      grid-template-columns: 1fr;
+    }
+
+    .brief--split .brief__part {
+      padding-block: 0 1rem;
+    }
+
+    .brief--split .brief__part--punch {
+      padding-top: 1rem;
+      padding-left: 0;
+      border-top: 1px solid var(--hair);
+      border-left: 0;
+    }
+  }
+</style>

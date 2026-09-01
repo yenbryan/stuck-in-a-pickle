@@ -1,5 +1,5 @@
 {
-  "name": "thepickle",
+  "name": "stuck-in-a-pickle",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -10,7 +10,9 @@
     "build": "astro build && node scripts/prepare-sites.mjs",
     "check": "astro check",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "trim": "node scripts/trim-comics.mjs",
+    "brand": "node scripts/make-brand-assets.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

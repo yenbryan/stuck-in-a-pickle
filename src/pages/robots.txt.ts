@@ -1,4 +1,4 @@
 export function GET({ site }: { site?: URL }) {
-  const base = site ?? new URL('https://thepickle.example');
+  const base = site ?? new URL('https://stuckinapickle.example');
   return new Response(`User-agent: *\nAllow: /\n\nSitemap: ${new URL('/sitemap-index.xml', base)}\n`, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 }

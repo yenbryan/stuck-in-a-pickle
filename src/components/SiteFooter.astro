@@ -1,18 +1,83 @@
+---
+import Wordmark from './Wordmark.astro';
+
+const year = new Date().getFullYear();
+---
+
 <footer class="site-footer">
-  <div class="page-shell footer-grid">
-    <div><a class="footer-logo" href="/">The Pickle</a><p>Made by humans using an irresponsible number of computers.</p></div>
-    <nav aria-label="Footer navigation"><a href="/about">About</a><a href="/archive">Archive</a><a href="/rss.xml">RSS</a><a href="/random">Random</a></nav>
-    <p class="fine-print">© 2026 The Pickle.<br />Please recycle this internet.</p>
+  <div class="shell footer-row">
+    <div class="footer-brand">
+      <Wordmark variant="stacked" />
+      <p>Made by humans using an irresponsible number of computers.</p>
+    </div>
+
+    <nav class="footer-nav" aria-label="Footer">
+      <a class="microlink" href="/about">About</a>
+      <a class="microlink" href="/archive">Archive</a>
+      <a class="microlink" href="/#topics">Topics</a>
+      <a class="microlink" href="/random">Random</a>
+      <a class="microlink" href="/rss.xml">RSS</a>
+    </nav>
+
+    <p class="footer-fine">
+      &copy; {year} Stuck in a Pickle.<br />
+      Please recycle this internet.
+    </p>
   </div>
 </footer>
 
 <style>
-  .site-footer { padding-block: 2.5rem; border-top: 3px double var(--ink); }
-  .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 2rem; align-items: end; }
-  .footer-logo { font-family: var(--serif); font-size: 2rem; font-weight: 900; letter-spacing: -0.05em; text-decoration: none; }
-  p { margin: 0.25rem 0 0; color: var(--muted); font-family: var(--serif); font-size: 0.85rem; }
-  nav { display: flex; flex-wrap: wrap; gap: 0.9rem; }
-  nav a { font-size: 0.68rem; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
-  .fine-print { text-align: right; }
-  @media (max-width: 42rem) { .footer-grid { grid-template-columns: 1fr; } .fine-print { text-align: left; } }
+  .site-footer {
+    margin-top: var(--s-12);
+    padding-block: var(--s-8);
+    border-top: 1px solid var(--hair-strong);
+  }
+
+  .footer-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 2rem;
+  }
+
+  .footer-brand p {
+    max-width: 34ch;
+    margin-top: 0.6rem;
+    color: var(--ink-faint);
+    font-size: 0.8125rem;
+  }
+
+  .footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+  }
+
+  .footer-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .footer-fine {
+    color: var(--ink-faint);
+    font-size: 0.78rem;
+    line-height: 1.55;
+    text-align: right;
+  }
+
+  @media (max-width: 60rem) {
+    .footer-row {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    .footer-fine {
+      text-align: left;
+    }
+  }
 </style>

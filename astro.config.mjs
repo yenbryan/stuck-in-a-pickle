@@ -5,10 +5,10 @@ import { sites } from '@openai/sites-vite-plugin';
 
 // https://astro.build/config
 export default defineConfig({
-  site: process.env.SITE_URL ?? 'https://thepickle.example',
+  site: process.env.SITE_URL ?? 'https://stuckinapickle.example',
   output: 'static',
   outDir: './dist/client',
-  integrations: [sitemap()],
+  integrations: [sitemap({ filter: (page) => !page.includes('/shop') })],
   compressHTML: true,
   vite: { plugins: [sites()] },
 });

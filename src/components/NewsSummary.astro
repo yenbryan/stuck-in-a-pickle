@@ -1,8 +1,0 @@
----
-interface Props { summary: string; }
-const { summary } = Astro.props;
----
-
-<section class="summary" aria-labelledby="what-happened"><p class="eyebrow" id="what-happened">What happened</p><p>{summary}</p></section>
-
-<style>.summary { padding: clamp(1.25rem, 3vw, 2rem); } p:last-child { margin: 0; font-family: var(--serif); font-size: clamp(1.1rem, 2.3vw, 1.45rem); font-weight: 700; line-height: 1.42; }</style>

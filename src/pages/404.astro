@@ -4,16 +4,25 @@ import SiteHeader from '../components/SiteHeader.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="Page not found — The Pickle" description="This pickle appears to have rolled under the refrigerator." noindex>
+<BaseLayout title="Page not found — Stuck in a Pickle" description="This pickle appears to have rolled under the refrigerator." noindex>
   <SiteHeader />
-  <main id="main-content" class="page-shell not-found"><p class="code">404</p><h1>This pickle rolled under the refrigerator.</h1><p>We could retrieve it, but then we would have to move the refrigerator.</p><a href="/">Return to civilization →</a></main>
+  <main id="main-content" class="shell not-found">
+    <img src="/images/pickle-jar-character.webp" width="300" height="300" alt="" decoding="async" />
+    <p class="label">Error 404</p>
+    <h1 class="headline">This pickle rolled under the refrigerator.</h1>
+    <p class="not-found__line">We could retrieve it, but then we would have to move the refrigerator.</p>
+    <div class="not-found__actions">
+      <a class="button" href="/">Read the latest comic</a>
+      <a class="button button--quiet" href="/random">Random pickle</a>
+    </div>
+  </main>
   <SiteFooter />
 </BaseLayout>
 
 <style>
-  .not-found { min-height: 55vh; padding-block: 5rem; text-align: center; }
-  .code { margin: 0; color: var(--tomato); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.2em; }
-  h1 { max-width: 50rem; margin: 0.6rem auto 1rem; font-family: var(--serif); font-size: clamp(3rem, 8vw, 6.5rem); letter-spacing: -0.06em; line-height: 0.9; }
-  .not-found > p:nth-of-type(2) { color: var(--muted); font-family: var(--serif); font-size: 1.1rem; }
-  a { font-size: 0.75rem; font-weight: 850; text-transform: uppercase; }
+  .not-found { display: grid; justify-items: center; min-height: 55vh; padding-block: var(--s-18); text-align: center; align-content: center; }
+  .not-found img { width: min(8rem, 34vw); height: auto; margin-bottom: 1.25rem; }
+  .not-found .headline { max-width: 20ch; margin: 0.6rem 0 0.9rem; }
+  .not-found__line { max-width: 42ch; color: var(--ink-soft); font-size: 1rem; }
+  .not-found__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 1.75rem; }
 </style>

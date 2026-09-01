@@ -1,0 +1,169 @@
+---
+import type { Story } from '../types/story';
+import { hasComicArtwork } from '../utils/stories';
+
+/**
+ * One source line and the share controls, sitting under the comic.
+ *
+ * Deliberately not a row of social icons — those have been dead for years, and
+ * they cost a third-party script and a tracker each. Instead: the operating
+ * system's own share sheet, which is where people actually send things, and a
+ * copy-link fallback for everywhere the Web Share API is missing.
+ *
+ * Share is rendered hidden and revealed by script only when the browser really
+ * supports it, so nobody is shown a button that does nothing.
+ */
+interface Props {
+  story: Story;
+}
+
+const { story } = Astro.props;
+const shareImage = hasComicArtwork(story) ? `/share/${story.slug}.jpg` : '';
+---
+
+<div class="attrib">
+  <p class="attrib__line">
+    {story.fictional ? (
+      <><strong>Demonstration story.</strong> This event is fictional; the source link points to an example domain.</>
+    ) : (
+      <>Based on reporting from <a href={story.sourceUrl} rel="external noreferrer">{story.sourceName}<span class="attrib__arrow" aria-hidden="true">&#8599;</span></a></>
+    )}
+  </p>
+
+  <div class="attrib__actions">
+    <button
+      class="attrib__action attrib__action--share"
+      type="button"
+      hidden
+      data-share
+      data-share-title={story.title}
+      data-share-slug={story.slug}
+      data-share-image={shareImage}
+    >
+      <span aria-hidden="true">&#8593;</span> Share
+    </button>
+
+    <button class="attrib__action" type="button" data-copy-link>
+      <span data-copy-label>Copy link</span>
+    </button>
+  </div>
+</div>
+
+<style>
+  .attrib {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem 1.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .attrib__line {
+    max-width: 54ch;
+    color: var(--ink-soft);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .attrib__line a {
+    color: var(--pickle-deep);
+  }
+
+  .attrib__arrow {
+    margin-left: 0.15rem;
+  }
+
+  .attrib__actions {
+    display: flex;
+    align-items: baseline;
+    gap: 1.25rem;
+    margin-left: auto;
+  }
+
+  .attrib__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 1.75rem;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--pickle);
+    background: none;
+    color: var(--pickle-deep);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .attrib__action:hover {
+    border-bottom-color: var(--pickle-deep);
+  }
+
+  .attrib__action[hidden] {
+    display: none;
+  }
+
+  @media (max-width: 46rem) {
+    .attrib__actions {
+      margin-left: 0;
+    }
+  }
+</style>
+
+<script>
+  // The only script on the site: the clipboard and the OS share sheet have no
+  // CSS equivalent.
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-link]').forEach((button) => {
+    const label = button.querySelector('[data-copy-label]');
+    if (!label) return;
+
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(window.location.href.split('#')[0]);
+        label.textContent = 'Link copied';
+      } catch {
+        label.textContent = 'Press Ctrl/Cmd + C';
+      }
+      window.setTimeout(() => {
+        label.textContent = 'Copy link';
+      }, 2000);
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-share]').forEach((button) => {
+    if (!navigator.share) return; // leave it hidden rather than show a dead control
+    button.hidden = false;
+
+    button.addEventListener('click', async () => {
+      const url = window.location.href.split('#')[0];
+      const title = button.dataset.shareTitle ?? document.title;
+      const image = button.dataset.shareImage;
+
+      try {
+        // Web Share Level 2: hand over the comic itself, so it lands in
+        // Messages or Instagram as a picture rather than a link.
+        if (image && navigator.canShare) {
+          const response = await fetch(image);
+          if (response.ok) {
+            const file = new File([await response.blob()], `${button.dataset.shareSlug}.jpg`, {
+              type: 'image/jpeg',
+            });
+            if (navigator.canShare({ files: [file] })) {
+              await navigator.share({ files: [file], title, text: title, url });
+              return;
+            }
+          }
+        }
+        await navigator.share({ title, text: title, url });
+      } catch (error) {
+        // Dismissing the sheet rejects; that is not a failure worth reporting.
+        if ((error as Error)?.name !== 'AbortError') {
+          await navigator.clipboard?.writeText(url).catch(() => {});
+        }
+      }
+    });
+  });
+</script>

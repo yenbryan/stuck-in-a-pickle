@@ -1,0 +1,161 @@
+---
+import { Image } from 'astro:assets';
+
+/**
+ * The masthead lockup: the jar mark, then the name set in Fraunces.
+ *
+ * The mark is drawn rather than assembled from primitives — the jar has
+ * shoulders, a screw band and a lip; the pickle is elongated and lumpy along
+ * its outline, which is what makes it read as a pickle and not an olive.
+ * It is tuned to survive at 28px, so the pickle nearly fills the jar and the
+ * face is two dots and a curve. Verified down to 28px and as a one-colour
+ * silhouette for print.
+ *
+ * If supplied artwork exists at src/assets/brand/logo.* it is used instead of
+ * the drawn mark — see scripts/make-brand-assets.mjs. The lookup is a glob
+ * rather than a direct import so a missing file falls back to the mark instead
+ * of failing the build.
+ *
+ * Not to be confused with the full mascot illustration, which only appears
+ * where its detail survives: the newsletter, the footer, and empty states.
+ */
+interface Props {
+  /** 'full' for the header, 'stacked' for the footer signature. */
+  variant?: 'full' | 'stacked';
+  /** Renders a <span> instead of a link, for use on the homepage itself. */
+  as?: 'a' | 'span';
+}
+
+const { variant = 'full', as = 'a' } = Astro.props;
+const Tag = as;
+const attrs = as === 'a' ? { href: '/', 'aria-label': 'Stuck in a Pickle — home' } : {};
+
+const supplied = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/brand/logo.{png,webp,jpg,jpeg,avif}',
+  { eager: true },
+);
+const logo = Object.values(supplied)[0]?.default;
+---
+
+<Tag class:list={['wordmark', `wordmark--${variant}`, { 'wordmark--art': logo }]} {...attrs}>
+  {logo ? (
+    <Image
+      class="wordmark__art"
+      src={logo}
+      alt=""
+      widths={[64, 128, 192]}
+      sizes="64px"
+      loading="eager"
+      decoding="async"
+    />
+  ) : (
+  <svg class="wordmark__mark" viewBox="0 0 44 48" aria-hidden="true" focusable="false">
+    <!-- glass -->
+    <path
+      d="M14 11.4 C14 13.7 7.2 15.4 7 19.6 L7 40.2 C7 43.4 9.4 45.2 12.8 45.2 L31.2 45.2 C34.6 45.2 37 43.4 37 40.2 L37 19.6 C36.8 15.4 30 13.7 30 11.4 Z"
+      fill="var(--paper-raised)" stroke="currentColor" stroke-width="2.7" stroke-linejoin="round"
+    />
+
+    <g transform="rotate(-16 22 28)">
+      <path
+        d="M22 14 C25.3 14 27.7 16 28.3 18.7 C28.7 20.6 28 21.4 28.4 23.1 C28.8 24.9 29.3 25.6 29 27.5 C28.7 29.4 28.2 30.2 28.6 32.1 C29 34 29.3 34.9 28.8 36.7 C28.1 40 25.4 42.3 22 42.3 C18.6 42.3 15.9 40 15.2 36.7 C14.7 34.9 15 34 15.4 32.1 C15.8 30.2 15.3 29.4 15 27.5 C14.7 25.6 15.2 24.9 15.6 23.1 C16 21.4 15.3 20.6 15.7 18.7 C16.3 16 18.7 14 22 14 Z"
+        fill="var(--pickle)" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"
+      />
+      <g fill="var(--pickle-deep)" opacity="0.5">
+        <ellipse cx="19.4" cy="30" rx="1.15" ry="1.05" />
+        <ellipse cx="24.5" cy="31.7" rx="1.1" ry="1" />
+        <ellipse cx="20.2" cy="35.1" rx="1.05" ry="0.95" />
+        <ellipse cx="24.3" cy="37.4" rx="0.95" ry="0.9" />
+        <ellipse cx="19.7" cy="39.4" rx="0.85" ry="0.8" />
+      </g>
+      <g fill="var(--ink)">
+        <circle cx="19.6" cy="21" r="1.5" />
+        <circle cx="24.4" cy="21" r="1.5" />
+      </g>
+      <path
+        d="M19.7 24.9 Q22.1 27 24.5 24.7"
+        fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round"
+      />
+    </g>
+
+    <!-- lip, then screw band -->
+    <path d="M13.4 8.9 L30.6 8.9 L30.6 11.4 L13.4 11.4 Z"
+      fill="var(--pickle-deep)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" />
+    <path d="M11.4 8.9 L11.4 5.7 Q11.4 3 14.1 3 L29.9 3 Q32.6 3 32.6 5.7 L32.6 8.9 Z"
+      fill="var(--pickle-deep)" stroke="currentColor" stroke-width="2.7" stroke-linejoin="round" />
+  </svg>
+  )}
+
+  <span class="wordmark__name">Stuck in a Pickle</span>
+</Tag>
+
+<style>
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .wordmark__mark,
+  .wordmark__art {
+    flex: 0 0 auto;
+    width: auto;
+    height: 2.5rem;
+    color: var(--ink);
+  }
+
+  /* Supplied artwork is squarer than the drawn mark, so it needs a little
+     more height to carry the same weight beside the wordmark. */
+  .wordmark--art .wordmark__art {
+    height: 2.85rem;
+  }
+
+  .wordmark__name {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 72, "wght" 800, "SOFT" 34, "WONK" 1;
+    font-size: 1.55rem;
+    line-height: 1;
+    letter-spacing: -0.032em;
+    white-space: nowrap;
+  }
+
+  a.wordmark:hover .wordmark__name {
+    color: var(--pickle-deep);
+  }
+
+  .wordmark--stacked {
+    gap: 0.7rem;
+  }
+
+  .wordmark--stacked .wordmark__mark,
+  .wordmark--stacked .wordmark__art {
+    height: 2.75rem;
+  }
+
+  .wordmark--stacked.wordmark--art .wordmark__art {
+    height: 3.1rem;
+  }
+
+  .wordmark--stacked .wordmark__name {
+    font-size: 1.35rem;
+  }
+
+  @media (max-width: 46rem) {
+    .wordmark {
+      gap: 0.5rem;
+    }
+    .wordmark__mark,
+    .wordmark__art {
+      height: 2.05rem;
+    }
+
+    .wordmark--art .wordmark__art {
+      height: 2.35rem;
+    }
+    .wordmark__name {
+      font-size: 1.3rem;
+    }
+  }
+</style>

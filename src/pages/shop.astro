@@ -1,0 +1,38 @@
+---
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Shop — Stuck in a Pickle" description="A deliberately small future shop for reader-favorite Stuck in a Pickle comics." canonicalPath="/shop" image="/og.png" noindex>
+  <SiteHeader />
+  <main id="main-content" class="shell shop-page">
+    <div class="shop-copy">
+      <p class="label">From the gift shop, eventually</p>
+      <h1 class="headline">The shop is still fermenting.</h1>
+      <p class="lead">The comics come first. Once the archive has genuine reader favorites, a few of them may escape onto paper, shirts, and stickers.</p>
+      <ul aria-label="Planned shop items"><li>Comic prints</li><li>Very occasional shirts</li><li>Small pickle stickers</li></ul>
+      <p class="note">No launch countdown. No artificial scarcity. No seventeen-email sales funnel.</p>
+      <div class="actions"><a class="primary" href="/">Read the latest comic <span aria-hidden="true">→</span></a><a href="/archive">Browse the archive</a></div>
+    </div>
+    <img src="/images/pickle-jar-character.webp" width="480" height="480" alt="A cheerful pickle waving from inside a glass jar" decoding="async" />
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .shop-page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 25rem); gap: clamp(2rem, 8vw, 7rem); min-height: min(44rem, 75vh); align-items: center; padding-block: clamp(3rem, 8vw, 7rem); }
+  .shop-copy { max-width: 46rem; }
+  .lead { max-width: 42rem; margin: 1.25rem 0 0; color: var(--ink-soft); font-size: clamp(1.1rem, 2.2vw, 1.35rem); line-height: 1.55; }
+  ul { display: flex; flex-wrap: wrap; gap: 0.45rem 1.5rem; margin: 1.75rem 0 0; padding-block: 1rem; padding-left: 1.25rem; border-block: 1px solid var(--hair); font-weight: 800; }
+  .note { margin-top: 1.25rem; color: var(--ink-soft); font-size: 0.92rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; margin-top: 1.25rem; }
+  .actions a { display: inline-flex; min-height: 2.75rem; align-items: center; font-size: 0.78rem; font-weight: 850; letter-spacing: 0.05em; text-transform: uppercase; }
+  .actions .primary { padding-inline: 1rem; background: var(--ink); color: var(--paper-raised); text-decoration: none; border-radius: 3px; }
+  .actions .primary:hover { background: var(--pickle-deep); }
+  img { width: 100%; height: auto; object-fit: contain; }
+  @media (max-width: 46rem) {
+    .shop-page { grid-template-columns: 1fr; min-height: 0; }
+    img { grid-row: 1; width: min(12rem, 48vw); justify-self: center; }
+  }
+</style>

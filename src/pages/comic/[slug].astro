@@ -1,74 +1,256 @@
 ---
-import AbsurdityBox from '../../components/AbsurdityBox.astro';
-import ComicImage from '../../components/ComicImage.astro';
-import NewsSummary from '../../components/NewsSummary.astro';
+import { render } from 'astro:content';
+import ComicStage from '../../components/ComicStage.astro';
+import NewsletterBox from '../../components/NewsletterBox.astro';
 import RelatedStories from '../../components/RelatedStories.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
-import SourceLink from '../../components/SourceLink.astro';
-import StoryIntro from '../../components/StoryIntro.astro';
+import SourceAttribution from '../../components/SourceAttribution.astro';
+import StoryBrief from '../../components/StoryBrief.astro';
 import StoryNavigation from '../../components/StoryNavigation.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import type { Story } from '../../types/story';
-import { getAdjacentStories, getAllStories, getRelatedStories } from '../../utils/stories';
+import {
+  categorySlug,
+  formatStoryDate,
+  getAdjacentStories,
+  getAllStories,
+  getComicAsset,
+  getRelatedStories,
+  getStoryEntry,
+} from '../../utils/stories';
 
 export async function getStaticPaths() {
   const stories = await getAllStories();
   return stories.map((story) => ({ params: { slug: story.slug }, props: { story } }));
 }
 
-interface Props { story: Story; }
+interface Props {
+  story: Story;
+}
+
 const { story } = Astro.props;
 const allStories = await getAllStories();
 const related = getRelatedStories(story, allStories);
 const { previous, next } = getAdjacentStories(story, allStories);
-const title = `${story.title} — The Pickle`;
+
+// The markdown body carries the satire / accuracy note. It was never rendered.
+const entry = await getStoryEntry(story.slug);
+const rendered = entry ? await render(entry) : undefined;
+const Note = rendered?.Content;
+
+const title = `${story.title} — Stuck in a Pickle`;
 const canonicalPath = `/comic/${story.slug}`;
+const site = Astro.site ?? new URL('https://stuckinapickle.example');
+
+// A purpose-built card (src/pages/og/[slug].jpg.ts) rather than the whole
+// comic shrunk down, which is unreadable at preview size.
+const asset = getComicAsset(story);
+const social = asset ? `/og/${story.slug}.jpg` : '/og.png';
+
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: story.title,
   description: story.summary,
+  image: new URL(social, site).toString(),
   datePublished: story.publishedAt.toISOString(),
   dateModified: (story.updatedAt ?? story.publishedAt).toISOString(),
   author: { '@type': 'Person', name: story.author },
-  publisher: { '@type': 'Organization', name: 'The Pickle', url: 'https://thepickle.example' },
-  mainEntityOfPage: `https://thepickle.example${canonicalPath}`,
+  publisher: { '@type': 'Organization', name: 'Stuck in a Pickle', url: new URL('/', site).toString() },
+  mainEntityOfPage: new URL(canonicalPath, site).toString(),
   articleSection: story.category,
   keywords: story.tags.join(', '),
   isAccessibleForFree: true,
 };
 ---
 
-<BaseLayout title={title} description={story.summary} canonicalPath={canonicalPath} ogType="article" publishedAt={story.publishedAt}>
+<BaseLayout
+  title={title}
+  description={story.summary}
+  canonicalPath={canonicalPath}
+  image={social}
+  ogType="article"
+  publishedAt={story.publishedAt}
+>
   <SiteHeader />
-  <main id="main-content" class="page-shell story-page">
+
+  <main id="main-content" class="shell story">
+    <a class="story__back microlink" href="/"><span aria-hidden="true">&larr;</span> Back to the jar</a>
+
     <article>
-      <header class="story-top"><p class="premise"><span>In five seconds:</span> something happened, and it was like this.</p><StoryIntro story={story} /></header>
-      <div class="explainer-grid"><NewsSummary summary={story.summary} /><AbsurdityBox absurdity={story.absurdity} /></div>
-      <section class="comic-section" aria-labelledby="comic-heading"><h2 id="comic-heading"><span>And now,</span> the comic</h2><ComicImage alt={story.comicImageAlt} panels={story.comicPanels} image={story.comicImage} /></section>
-      <SourceLink story={story} />
-      <StoryNavigation previous={previous} next={next} />
-      <RelatedStories stories={related} />
+      {/* A centred reading column — deliberately not the front page's
+          left-aligned composition, so arriving here feels like arriving. */}
+      <header class="reading story__head">
+        <p class="story__meta">
+          <a class="story__category" href={`/category/${categorySlug(story.category)}`}>{story.category}</a>
+          <span class="story__dot" aria-hidden="true"></span>
+          <time class="meta" datetime={story.publishedAt.toISOString()}>{formatStoryDate(story.publishedAt)}</time>
+          <span class="story__dot" aria-hidden="true"></span>
+          <span class="meta">by {story.author}</span>
+        </p>
+        <h1 class="headline">{story.title}</h1>
+      </header>
+
+      <div class="reading story__brief">
+        <StoryBrief story={story} layout="stacked" idPrefix="story" />
+      </div>
+
+      {/* the widest thing on the page is always the artwork */}
+      <div class="story__wide story__stage">
+        <ComicStage story={story} priority sizes="(min-width: 67rem) 1024px, 100vw" />
+        {story.comicVariants.map((variant, index) => (
+          <section class="story__variant" aria-labelledby={`variant-${index + 1}-title`}>
+            <header class="reading story__variant-head">
+              <p class="label">Another take</p>
+              <h2 id={`variant-${index + 1}-title`}>{variant.title}</h2>
+            </header>
+            <ComicStage
+              story={story}
+              artwork={variant}
+              instance={`variant-${index + 1}`}
+              sizes="(min-width: 67rem) 1024px, 100vw"
+            />
+          </section>
+        ))}
+        <SourceAttribution story={story} />
+        {Note && (
+          <div class="story__note">
+            <Note />
+          </div>
+        )}
+      </div>
+
+      <div class="story__wide">
+        <StoryNavigation previous={previous} next={next} />
+        <RelatedStories stories={related} />
+      </div>
     </article>
+
+    <div class="story__wide">
+      <NewsletterBox />
+    </div>
   </main>
+
   <SiteFooter />
   <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
 </BaseLayout>
 
 <style>
-  .story-page { padding-block: clamp(2.5rem, 7vw, 5.5rem); }
-  .story-top { position: relative; }
-  .premise { width: fit-content; margin: 0 auto 2.2rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--rule); color: var(--muted); font-family: var(--serif); font-size: 0.9rem; font-style: italic; }
-  .premise span { color: var(--tomato); font-family: var(--sans); font-size: 0.63rem; font-style: normal; font-weight: 850; letter-spacing: 0.1em; text-transform: uppercase; }
-  .explainer-grid { display: grid; grid-template-columns: 1fr 1fr; max-width: 56rem; margin: clamp(2.75rem, 6vw, 4.5rem) auto 0; border-block: 1px solid var(--ink); }
-  .explainer-grid > :global(section + section) { border-left: 1px solid var(--ink); }
-  .comic-section { margin-top: clamp(3.5rem, 8vw, 6rem); }
-  .comic-section h2 { display: flex; align-items: baseline; gap: 0.7rem; width: fit-content; margin: 0 auto; font-family: var(--serif); font-size: clamp(2.5rem, 6vw, 5rem); letter-spacing: -0.05em; line-height: 1; }
-  .comic-section h2 span { color: var(--muted); font-size: 0.8rem; font-style: italic; font-weight: 400; letter-spacing: 0; }
-  @media (max-width: 42rem) {
-    .premise { text-align: center; }
-    .explainer-grid { grid-template-columns: 1fr; }
-    .explainer-grid > :global(section + section) { border-top: 1px solid var(--ink); border-left: 0; }
+  .story {
+    padding-block: clamp(1.5rem, 3vw, 2.25rem) 0;
+  }
+
+  .story__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.5rem;
+    color: var(--ink-faint);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .story__head {
+    margin-top: clamp(1rem, 2.5vw, 1.75rem);
+    text-align: center;
+  }
+
+  .story__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem 0.8rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .story__category {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    color: var(--pickle);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.145em;
+    text-transform: uppercase;
+  }
+
+  .story__category:hover {
+    color: var(--pickle-deep);
+    text-decoration: underline;
+    text-decoration-thickness: 0.1em;
+    text-underline-offset: 0.28em;
+  }
+
+  .story__dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--hair-strong);
+  }
+
+  .story__brief {
+    margin-top: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .story__wide {
+    width: min(100%, var(--stage));
+    margin-inline: auto;
+  }
+
+  .story__stage {
+    margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
+  }
+
+  .story__variant {
+    margin-top: clamp(3.25rem, 7vw, 5.5rem);
+    padding-top: clamp(1.5rem, 3vw, 2.25rem);
+    border-top: 1px solid var(--hair-strong);
+  }
+
+  .story__variant-head {
+    margin-bottom: clamp(1.25rem, 2.5vw, 1.75rem);
+    text-align: center;
+  }
+
+  .story__variant-head h2 {
+    margin-top: 0.4rem;
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 48, "wght" 670, "SOFT" 20, "WONK" 1;
+    font-size: clamp(1.75rem, 4vw, 2.6rem);
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  .story__note {
+    max-width: 60ch;
+    margin-top: 1.1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--hair);
+    color: var(--ink-faint);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+  }
+
+  .story__note :global(p + p) {
+    margin-top: 0.6rem;
+  }
+
+  @media (max-width: 46rem) {
+    .story__head {
+      text-align: left;
+    }
+
+    .story__meta {
+      justify-content: flex-start;
+    }
+
+    .story__variant-head {
+      text-align: left;
+    }
   }
 </style>

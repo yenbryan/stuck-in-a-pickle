@@ -1,33 +1,189 @@
-<aside class="newsletter" aria-labelledby="newsletter-title">
-  <div class="stamp" aria-hidden="true">NEW<br />ISSUE</div>
-  <div>
-    <p class="eyebrow">Occasional correspondence</p>
-    <h2 id="newsletter-title">Get the nonsense delivered.</h2>
-    <p>A few comics. No 47-email onboarding sequence. No growth-hacking your relationship with cucumbers.</p>
+---
+/**
+ * One of the three places the mascot is allowed to appear, at a size where its
+ * detail actually survives. (The others: the footer, and empty states.)
+ *
+ * The form posts straight to whatever list provider is configured, with no
+ * JavaScript and no CORS to negotiate — a plain HTML POST is what Buttondown,
+ * Kit, MailerLite and Formspree all expect from an embed.
+ *
+ * Set PUBLIC_NEWSLETTER_ACTION in .env to switch it on. Until then it says so
+ * rather than silently swallowing addresses, because a signup box that quietly
+ * drops the address is worse than one that admits it is not ready.
+ */
+const action = import.meta.env.PUBLIC_NEWSLETTER_ACTION;
+const field = import.meta.env.PUBLIC_NEWSLETTER_FIELD ?? 'email';
+const live = Boolean(action);
+---
+
+<aside class="news" aria-labelledby="newsletter-title">
+  <img
+    class="news__jar"
+    src="/images/pickle-jar-character.webp"
+    width="300"
+    height="300"
+    alt=""
+    loading="lazy"
+    decoding="async"
+  />
+
+  <div class="news__copy">
+    <h2 class="section-title" id="newsletter-title">Get pickled.</h2>
+    <p>A few ridiculous things civilization did, delivered occasionally.</p>
   </div>
-  <form action="#newsletter-note" method="get">
-    <label for="newsletter-email">Your email address</label>
-    <div class="field-row"><input id="newsletter-email" name="email" type="email" autocomplete="email" placeholder="you@probably.email" required /><button type="submit">Put me on the list</button></div>
-    <small id="newsletter-note">Preview only — the form does not send anywhere yet.</small>
+
+  <form
+    class="news__form"
+    action={live ? action : '#newsletter-note'}
+    method={live ? 'post' : 'get'}
+    target={live ? '_blank' : undefined}
+  >
+    <label class="visually-hidden" for="newsletter-email">Email address</label>
+    <div class="news__field">
+      <input
+        id="newsletter-email"
+        name={live ? field : 'email'}
+        type="email"
+        autocomplete="email"
+        placeholder="you@probably.email"
+        required
+        disabled={!live}
+      />
+      <button type="submit" disabled={!live}>Subscribe</button>
+    </div>
+
+    {live && (
+      /* Bots fill every field they find; people never see this one. */
+      <div class="news__trap" aria-hidden="true">
+        <label for="newsletter-website">Leave this empty</label>
+        <input id="newsletter-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+    )}
+
+    <small id="newsletter-note">
+      {live
+        ? 'No more than weekly. Unsubscribing is easier than most things.'
+        : 'The list isn\u2019t connected yet. This button is purely aspirational.'}
+    </small>
   </form>
 </aside>
 
 <style>
-  .newsletter { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 5vw, 4rem); margin-block: 5rem; padding: clamp(1.5rem, 4vw, 3.2rem); border: 2px solid var(--ink); background: var(--pickle-pale); }
-  .newsletter::before { position: absolute; inset: 0.4rem; border: 1px solid rgba(32, 34, 25, 0.35); content: ''; pointer-events: none; }
-  .stamp { position: absolute; top: -1.3rem; right: 1.5rem; display: grid; width: 4.4rem; aspect-ratio: 1; place-items: center; rotate: 7deg; border: 2px solid var(--tomato); border-radius: 50%; background: var(--paper); color: var(--tomato); font-size: 0.63rem; font-weight: 900; letter-spacing: 0.08em; line-height: 1.05; text-align: center; }
-  h2 { margin: 0; font-family: var(--serif); font-size: clamp(2.25rem, 5vw, 4.2rem); letter-spacing: -0.05em; line-height: 0.95; }
-  p { max-width: 35rem; margin: 0.85rem 0 0; font-family: var(--serif); font-size: 1.05rem; }
-  form { align-self: center; }
-  label { display: block; margin-bottom: 0.45rem; font-size: 0.68rem; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
-  .field-row { display: flex; }
-  input { min-width: 0; flex: 1; border: 2px solid var(--ink); border-right: 0; border-radius: 0; padding: 0.8rem; background: #fffdf6; color: var(--ink); }
-  button { padding: 0.8rem 1rem; border: 2px solid var(--ink); border-radius: 0; background: var(--ink); color: var(--paper); cursor: pointer; font-size: 0.74rem; font-weight: 850; }
-  button:hover { background: var(--pickle-dark); }
-  small { display: block; margin-top: 0.5rem; color: var(--muted); font-size: 0.68rem; }
-  @media (max-width: 46rem) {
-    .newsletter { grid-template-columns: 1fr; }
-    .field-row { flex-direction: column; }
-    input { border-right: 2px solid var(--ink); border-bottom: 0; }
+  .news {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr) minmax(18rem, 22rem);
+    align-items: center;
+    gap: clamp(1.5rem, 3.5vw, 2.5rem);
+    margin-block: var(--s-18);
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    border: 1px solid var(--hair-strong);
+    background: var(--paper-raised);
+  }
+
+  .news__jar {
+    width: 5.5rem;
+    height: auto;
+  }
+
+  .news__copy p {
+    max-width: 34ch;
+    margin-top: 0.5rem;
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+  }
+
+  .news__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .news__field {
+    display: flex;
+  }
+
+  .news__field input {
+    flex: 1;
+    min-width: 0;
+    min-height: 3rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--hair-strong);
+    border-right: 0;
+    border-radius: 3px 0 0 3px;
+    background: var(--paper);
+    font-size: 0.9375rem;
+  }
+
+  .news__field input::placeholder {
+    color: var(--ink-faint);
+  }
+
+  .news__field button {
+    min-height: 3rem;
+    padding-inline: 1.15rem;
+    border: 1px solid var(--ink);
+    border-radius: 0 3px 3px 0;
+    background: var(--ink);
+    color: var(--paper-raised);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .news__field button:hover {
+    background: var(--pickle-deep);
+    border-color: var(--pickle-deep);
+  }
+
+  .news__form small {
+    color: var(--ink-faint);
+    font-size: 0.78rem;
+  }
+
+  .news__field input:disabled,
+  .news__field button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .news__trap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  @media (max-width: 60rem) {
+    .news {
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .news__jar {
+      width: 4.5rem;
+    }
+
+    .news__form {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .news__field {
+      flex-direction: column;
+    }
+
+    .news__field input {
+      border-right: 1px solid var(--hair-strong);
+      border-bottom: 0;
+      border-radius: 3px 3px 0 0;
+    }
+
+    .news__field button {
+      border-radius: 0 0 3px 3px;
+    }
   }
 </style>

@@ -1,0 +1,202 @@
+---
+import { Image } from 'astro:assets';
+import type { Story } from '../types/story';
+import { formatStoryDate, getComicAsset } from '../utils/stories';
+
+/**
+ * One comic in a list.
+ *
+ * The artwork is shown at its own aspect ratio with no frame of its own. The
+ * comic's drawn panel border is already a frame, and the artwork is trimmed
+ * flush to it (scripts/trim-comics.mjs), so anything we add around it reads as
+ * a second, slightly-misaligned border.
+ *
+ * In a list the art sits in a square box, because the artwork runs from 0.71
+ * to 4.11 in aspect ratio — six times the spread. Left at natural size the
+ * headlines in a row land hundreds of pixels apart and the row reads as broken
+ * rather than rhythmic. `contain` keeps every comic uncropped: a tall one just
+ * renders narrower inside the box, which reads as variation, while the
+ * headlines below stay on one line. The two 4:1 strips are the exception —
+ * nothing that wide can share a row uncropped, so they fill from the left and
+ * show their opening panels.
+ *
+ * There is exactly one link, stretched over the whole card, so scanning costs
+ * one tab stop per story rather than three.
+ */
+interface Props {
+  story: Story;
+  variant?: 'lead' | 'feed' | 'related';
+  showDate?: boolean;
+  /** Match the surrounding document outline; 3 suits a labelled section. */
+  headingLevel?: 2 | 3;
+}
+
+const { story, variant = 'feed', showDate = true, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+
+const asset = getComicAsset(story);
+const isPanoramic = story.comicLayout === 'panoramic';
+
+const art: Record<string, { widths: number[]; sizes: string }> = {
+  lead: { widths: [560, 840, 1120], sizes: '(min-width: 61rem) 700px, 92vw' },
+  feed: { widths: [380, 560, 760], sizes: '(min-width: 61rem) 380px, (min-width: 46rem) 46vw, 92vw' },
+  related: { widths: [320, 480, 720], sizes: '(min-width: 61rem) 330px, (min-width: 46rem) 30vw, 92vw' },
+};
+const { widths, sizes } = art[variant] ?? art.feed;
+
+const titleRole = variant === 'lead' ? 'title-lg' : variant === 'feed' ? 'title' : 'title-sm';
+---
+
+<article class:list={['card', `card--${variant}`]}>
+  {asset && (
+    <div class:list={['card__art', { 'card__art--panoramic': isPanoramic }]}>
+      <Image src={asset} alt="" widths={widths} sizes={sizes} loading="lazy" decoding="async" />
+    </div>
+  )}
+
+  <div class="card__copy">
+    <p class="card__meta">
+      <span class="card__category">{story.category}</span>
+      {showDate && (
+        <>
+          <span class="card__dot" aria-hidden="true"></span>
+          <time datetime={story.publishedAt.toISOString()}>{formatStoryDate(story.publishedAt)}</time>
+        </>
+      )}
+    </p>
+
+    <Heading class={titleRole}>
+      <a href={`/comic/${story.slug}`}>{story.title}</a>
+    </Heading>
+
+    <p class="card__punch">{story.absurdity}</p>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  /* one link, covering the whole card */
+  .card :is(h2, h3) a {
+    text-decoration: none;
+  }
+
+  .card :is(h2, h3) a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .card:hover :is(h2, h3) a {
+    text-decoration: underline;
+    text-decoration-thickness: 0.07em;
+    text-underline-offset: 0.14em;
+  }
+
+  .card__art img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* Rows: one box height, so every headline in the row starts on the same line. */
+  .card--feed .card__art,
+  .card--related .card__art {
+    /* No grid here: a percentage height cannot resolve against an auto-sized
+       grid row, so the image fell back to its intrinsic height and overflowed.
+       object-fit centres it on its own. */
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+  }
+
+  .card--feed .card__art img,
+  .card--related .card__art img {
+    width: 100%;
+    height: 100%;
+    /* never crop the joke — a tall comic simply renders narrower */
+    object-fit: contain;
+  }
+
+  /* A 4:1 strip inside a square box would be a sliver floating in white space,
+     so it fills instead, cropped to the panels that open the joke. */
+  .card--feed .card__art--panoramic img,
+  .card--related .card__art--panoramic img {
+    object-fit: cover;
+    object-position: left center;
+  }
+
+  .card__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .card__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ink-soft);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .card__category {
+    color: var(--pickle);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.145em;
+    text-transform: uppercase;
+  }
+
+  .card__dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--hair-strong);
+  }
+
+  .card :is(h2, h3) {
+    max-width: 24ch;
+  }
+
+  .card__punch {
+    max-width: 40ch;
+    margin-top: 0.2rem;
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  /* -- lead: the second feature. Art beside the copy, both top-aligned. -- */
+
+  .card--lead {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: clamp(1.75rem, 3.5vw, 2.75rem);
+    align-items: start;
+  }
+
+  .card--lead :is(h2, h3) {
+    max-width: 19ch;
+  }
+
+  .card--related :is(h2, h3) {
+    max-width: 22ch;
+  }
+
+  .card--related .card__punch {
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 61rem) {
+    .card--lead {
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+  }
+</style>

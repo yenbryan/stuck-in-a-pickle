@@ -1,13 +1,167 @@
 ---
-import EditionDate from './EditionDate.astro';
-import Masthead from './Masthead.astro';
-import Navigation from './Navigation.astro';
+import Wordmark from './Wordmark.astro';
+
+const path = Astro.url.pathname;
+const isHome = path === '/';
+
+const links = [
+  { label: 'Latest', href: '/', current: isHome },
+  { label: 'Topics', href: '/#topics', current: path.startsWith('/category/') },
+  { label: 'Archive', href: '/archive', current: path.startsWith('/archive') },
+  { label: 'About', href: '/about', current: path.startsWith('/about') },
+];
 ---
 
-<header class="site-header page-shell">
-  <Masthead />
-  <EditionDate date={new Date('2026-08-28T12:00:00Z')} />
-  <Navigation />
+<header class="site-header">
+  <div class="shell header-row">
+    <div class="header-brand">
+      <Wordmark as={isHome ? 'span' : 'a'} />
+    </div>
+
+    <p class="header-tagline">Current events, reduced to their essential absurdity.</p>
+
+    <nav class="header-nav" aria-label="Sections">
+      <ul class="header-nav__list">
+        {links.map((link) => (
+          <li>
+            <a href={link.href} aria-current={link.current ? 'page' : undefined}>{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <a class="header-random" href="/random">Random pickle</a>
+  </div>
 </header>
 
-<style>.site-header { padding-top: 1.1rem; }</style>
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--hair-strong);
+  }
+
+  .header-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "brand tagline nav random";
+    align-items: center;
+    gap: 0 clamp(1rem, 2.5vw, 2.25rem);
+    padding-block: 1.15rem;
+  }
+
+  .header-brand {
+    grid-area: brand;
+    min-width: 0;
+  }
+
+  .header-tagline {
+    grid-area: tagline;
+    max-width: 15rem;
+    padding-left: clamp(1rem, 2.5vw, 2.25rem);
+    border-left: 1px solid var(--hair);
+    color: var(--ink-faint);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .header-nav {
+    grid-area: nav;
+    min-width: 0;
+  }
+
+  .header-nav__list {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.9rem, 2vw, 1.6rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .header-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    border-bottom: 2px solid transparent;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .header-nav a:hover {
+    border-bottom-color: var(--pickle);
+    color: var(--pickle-deep);
+  }
+
+  .header-nav a[aria-current="page"] {
+    border-bottom-color: var(--pickle);
+    color: var(--pickle-deep);
+  }
+
+  .header-random {
+    grid-area: random;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding-inline: 0.8rem;
+    border: 1px solid var(--hair-strong);
+    border-radius: 3px;
+    color: var(--pickle-deep);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .header-random:hover {
+    border-color: var(--pickle-deep);
+    background: var(--brine);
+    color: var(--pickle-deep);
+  }
+
+  /* Below the desktop layout the nav becomes a word rail on its own line:
+     one fewer tap than a menu, and no icon standing in for a word. */
+  @media (max-width: 60rem) {
+    .header-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "brand random"
+        "nav   nav";
+      gap: 0;
+      padding-block: 0.9rem 0;
+    }
+
+    .header-tagline {
+      display: none;
+    }
+
+    .header-nav {
+      margin-top: 0.35rem;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      scrollbar-width: none;
+      -webkit-mask-image: linear-gradient(90deg, #000 0 92%, transparent 100%);
+      mask-image: linear-gradient(90deg, #000 0 92%, transparent 100%);
+    }
+
+    .header-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .header-nav__list {
+      gap: 1.4rem;
+      padding-right: 2.5rem;
+    }
+
+    .header-nav a {
+      min-height: 2.5rem;
+      padding-bottom: 0.35rem;
+      font-size: 0.875rem;
+    }
+  }
+</style>
