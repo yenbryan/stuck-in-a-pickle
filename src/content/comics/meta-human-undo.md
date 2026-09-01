@@ -9,7 +9,7 @@ category: "AI"
 tags: ["AI", "Meta", "Work", "Business"]
 comicImage: "/comics/meta-human-undo.webp"
 comicImageAlt: "A four-panel satirical comic in which a manager says AI will eliminate repetitive work, then employees supervise its mistakes and spend their time pressing a giant undo button."
-comicLayout: "panoramic"
+comicLayout: "standard"
 comicPanels:
   - "AI will eliminate repetitive human work."
   - "Interesting."

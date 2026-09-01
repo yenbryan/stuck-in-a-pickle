@@ -9,7 +9,7 @@ category: "Business"
 tags: ["Privacy", "Marketing", "Consumer Protection", "United Kingdom"]
 comicImage: "/comics/call-blocker-nuisance-calls.webp"
 comicImageAlt: "A four-panel satirical comic in which a man receives a nuisance call selling protection from nuisance calls, while the salesperson reveals an enormous call center devoted to making more of them."
-comicLayout: "panoramic"
+comicLayout: "standard"
 comicPanels:
   - "Hello?"
   - "Tired of nuisance calls?"

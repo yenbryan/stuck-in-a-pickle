@@ -17,7 +17,7 @@ comicPanels:
   - "We'll need 1,000 hours to read these."
 sourceName: "Fortune"
 sourceUrl: "https://fortune.com/2026/08/30/ai-economy-like-dating-app-pilot-purgatory-decks-dotcom-bubble/"
-featured: false
+featured: true
 evergreen: false
 author: "Dill Harper"
 fictional: false

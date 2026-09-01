@@ -17,7 +17,7 @@ comicPanels:
   - "Sir, your visa expired."
 sourceName: "NBC News"
 sourceUrl: "https://www.nbcnews.com/news/us-news/milo-yiannopoulos-deported-uk-rcna595025"
-featured: true
+featured: false
 evergreen: false
 author: "Dill Harper"
 fictional: false
